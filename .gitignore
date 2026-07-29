@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Directory with data files
+geno_pheno_files

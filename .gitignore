@@ -23,5 +23,6 @@ tests/PLINK_validation/*.glm.logistic.hybrid
 tests/PLINK_validation/*.eigenvec
 tests/PLINK_validation/*.eigenval
 tests/PLINK_validation/*.png
+tests/PLINK_validation/*.pdf
 tests/PLINK_validation/*.csv
 

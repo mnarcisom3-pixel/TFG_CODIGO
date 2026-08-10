@@ -1,6 +1,8 @@
 import pynei
 from pathlib import Path
 
+from gwaslib import integration
+
 PROJECT_DIR = Path(__file__).parent.parent.parent
 
 path_VCF = PROJECT_DIR / "geno_pheno_files" / "vcf_test_247rows.vcf"
@@ -9,7 +11,49 @@ path_VCF = PROJECT_DIR / "geno_pheno_files" / "vcf_test_247rows.vcf"
 
 # Leemos el VCF con pynei
 variants = pynei.io_vcf.vars_from_vcf(path_VCF)
+matriz012_sin = pynei.pca.create_012_gt_matrix(variants, transform_to_biallelic=True)
+print(matriz012_sin.shape)
 
+'''
+# Vamos a comprobar si un objeto Variants (tal cual del VCF) es un iterador de un solo uso
+matriz012_sin_2 = pynei.pca.create_012_gt_matrix(variants, transform_to_biallelic=True)
+print(matriz012_sin_2.shape)
+
+# Ahora comprobémoslo para un objeto Variants FILTRADO
+filtered_variants = pynei.var_filters.filter_by_ld_and_maf(variants)
+matriz012_filtrada = pynei.pca.create_012_gt_matrix(filtered_variants, transform_to_biallelic=True)
+print(matriz012_filtrada.shape)
+matriz012_filtrada_2 = pynei.pca.create_012_gt_matrix(filtered_variants, transform_to_biallelic=True)
+print(matriz012_filtrada_2.shape)
+'''
+'''
+# Se ha visto que los Filtered_Variants son un iterador de un solo uso
+# Si generamos solo uno, aunque le pongamos varios punteros, solo tendrá un uso
+filt = pynei.var_filters.filter_by_ld_and_maf(variants)
+a = filt
+b = filt
+
+mat_a = pynei.pca.create_012_gt_matrix(a, transform_to_biallelic=True)
+print(mat_a.shape)
+mat_b = pynei.pca.create_012_gt_matrix(b, transform_to_biallelic=True)
+print(mat_b.shape)
+'''
+'''
+# ¿Si generamos varios idénticos, llamando a la función de filtrado varias veces sobre el mismo input,
+# podemos usarlos todos?
+
+filt_a = pynei.var_filters.filter_by_ld_and_maf(variants)
+filt_b = pynei.var_filters.filter_by_ld_and_maf(variants)
+
+mat_a = pynei.pca.create_012_gt_matrix(filt_a, transform_to_biallelic=True)
+print(mat_a.shape)
+mat_b = pynei.pca.create_012_gt_matrix(filt_b, transform_to_biallelic=True)
+print(mat_b.shape)
+
+# Efectivamente, sí que podemos
+'''
+
+'''
 # Hagamos el filtrado para el PCA (filtrar por maf y LD)
 filtered_variants = pynei.var_filters.filter_by_ld_and_maf(variants)
 
@@ -36,3 +80,37 @@ print(comb_lineales.shape)
 
 
 # Probemos a correr lo mismo con 500 variantes en lugar de 247
+'''
+
+# Probemos las funciones de integration.py
+variants_2 = pynei.io_vcf.vars_from_vcf(path_VCF)
+filtered_vars_for_PCA = integration.filter_data_for_PCA(variants_2)
+
+'''
+for chunk in filtered_vars_2.iter_vars_chunks():
+    print(chunk.alleles.head())
+    break
+'''
+
+matriz012_filt_2 = pynei.pca.create_012_gt_matrix(filtered_vars_for_PCA, transform_to_biallelic=True)
+print(matriz012_filt_2.shape)
+
+sample_ids = filtered_vars_for_PCA.samples
+print(sample_ids.shape)
+
+
+variants_3 = pynei.io_vcf.vars_from_vcf(path_VCF)
+filtered_vars_for_GWAS = integration.filter_data_for_GWAS(variants_3)
+'''
+matriz012_filt_3 = pynei.pca.create_012_gt_matrix(filtered_vars_for_GWAS, transform_to_biallelic=True)
+print(matriz012_filt_3.shape)
+'''
+
+# ¿Converge el PCA si solo filtramos por MAF y no por LD? EN ESTE CASO SÍ
+
+# Sigamos probando funciones de integration.py
+all_info = integration._extract_variant_data(filtered_vars_for_GWAS)
+print(all_info.keys())
+
+
+

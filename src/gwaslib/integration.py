@@ -2,6 +2,8 @@
 En este módulo crearemos funciones que permitan integrar las funciones de regresión de gwaslib
 con las funciones de la librería pynei, necesarias para leer VCF, filtrar, hacer PCA, etc.
 '''
+from pathlib import Path
+from io import BytesIO
 
 import pynei
 import gwaslib as gw
@@ -9,8 +11,161 @@ import gwaslib as gw
 import pandas as pd
 import numpy as np
 
-# Identificar los individuos/muestras cuyo % de datos faltantes es menor del umbral
-def _identify_samples_with_enough_data(variants: Variants, max_missing_rate):
+# Leer el archivo input de fenotipos (.csv o .xlsx)
+# Esta función hace, básicamente, 4 cosas: 
+#   - Leer archivo .csv o .xlsx
+#   - Verificar las exigencias de contenido
+#   - Convertir a valores numéricos (comas decimales por puntos)
+#   - Crear un pd.Series para usarlo en do_gwas()
+def load_phenotypes(
+    source: str | Path | bytes,
+    filename: str | None = None,
+) -> pd.Series:
+    """
+    Carga los datos fenotípicos de un Excel o un CSV.
+    El archivo input debe contener exactamente 2 columnas, en este orden
+    'Sample' y 'Phenotype'.
+
+    Parameters
+    ----------
+    source : str | Path | bytes
+        Local file path or raw bytes from an uploaded file.
+
+    filename : str | None, optional
+        Original filename. Required when `source` is bytes,
+        in order to determine the file format.
+
+    Returns
+    -------
+    pd.Series
+        Phenotype values indexed by sample ID.
+    """
+
+    # =========================================================
+    # 1. Determine the input source and file extension
+    # =========================================================
+
+    if isinstance(source, (str, Path)):
+        file_source = Path(source)
+        suffix = file_source.suffix.lower()
+
+    elif isinstance(source, bytes):
+        if filename is None:
+            raise ValueError(
+                "'filename' must be provided when 'source' is bytes."
+            )
+
+        file_source = BytesIO(source)
+        suffix = Path(filename).suffix.lower()
+
+    else:
+        raise TypeError(
+            "'source' must be a str, pathlib.Path, or bytes object."
+        )
+
+    # =========================================================
+    # 2. Read file
+    # =========================================================
+
+    if suffix == ".csv":
+
+        # sep=None allows Pandas to detect delimiters such as
+        # ',' or ';' automatically.
+        df = pd.read_csv(
+            file_source,
+            sep=None,
+            engine="python",
+        )
+
+    elif suffix == ".xlsx":
+
+        # calamine works in Pyodide
+        df = pd.read_excel(
+            file_source,
+            engine="calamine",
+        )
+
+    else:
+        raise ValueError(
+            "Phenotype file must have '.csv' or '.xlsx' extension."
+        )
+
+    # =========================================================
+    # 3. Validate table structure
+    # =========================================================
+
+    expected_columns = ["Sample", "Phenotype"]
+
+    if list(df.columns) != expected_columns:
+        raise ValueError(
+            "Phenotype file must contain exactly two columns, "
+            "in this order: 'Sample' and 'Phenotype'."
+        )
+
+    # =========================================================
+    # 4. Validate sample IDs
+    # =========================================================
+
+    if df["Sample"].isna().any():
+        raise ValueError(
+            "Missing sample IDs were found in the phenotype file."
+        )
+
+    if df["Sample"].duplicated().any():
+        raise ValueError(
+            "Duplicate sample IDs were found in the phenotype file."
+        )
+
+    # =========================================================
+    # 5. Normalize phenotype values
+    # =========================================================
+
+    phenotype_raw = df["Phenotype"]
+
+    # Keep track of genuine missing values.
+    missing = phenotype_raw.isna()
+
+    # This is to make both 12.34 and 12,34 valid decimal representations.
+    normalized = (
+        phenotype_raw.astype("string")
+        .str.strip()
+        .str.replace(",", ".", regex=False)
+    )
+
+    phenotype_numeric = pd.to_numeric(
+        normalized,
+        errors="coerce", # Para no sacar error por pantalla cuando un valor no pueda convertirse a número (pasa a NaN))
+    )
+
+    # Detect values which were NOT missing originally but could not
+    # be converted to numbers.
+    invalid = (~missing) & phenotype_numeric.isna()
+
+    if invalid.any():
+        invalid_values = phenotype_raw[invalid].unique()
+
+        raise ValueError(
+            "Non-numeric phenotype values were found: "
+            + ", ".join(map(str, invalid_values))
+        )
+
+    df["Phenotype"] = phenotype_numeric
+
+    # =========================================================
+    # 6. Convert to Series
+    # =========================================================
+
+    phenotypes = df.set_index("Sample")["Phenotype"]
+
+    return phenotypes
+
+# Para identificar los individuos/muestras cuyo fenotipo es conocido (no es NaN)
+def _get_samples_with_known_phenotypes(phenotypes: pd.Series):
+    return phenotypes.index[phenotypes.notna()].to_numpy()
+
+
+# Para identificar los individuos/muestras cuyo % de datos faltantes es menor del umbral
+def _get_samples_with_enough_genotype_data(variants: Variants, max_missing_rate):
     sample_stats = pynei.calc_per_sample_stats(variants)
     samples_with_enough_data = tuple(
         sorted(
@@ -19,68 +174,111 @@ def _identify_samples_with_enough_data(variants: Variants, max_missing_rate):
     )
     return samples_with_enough_data
 
-# Función "filter_data_for_PCA"(variants, params)
-def filter_data_for_PCA(variants: Variants,
+# Para filtrar datos para PCA según los parámetros indicados
+def filter_genotypes_for_PCA(variants: Variants,
+        phenotypes:pd.Series,
         max_sample_gt_missing_rate=0.05,
         max_var_gt_missing_rate=0.05,
         max_allowed_maf=0.95,
         min_allowed_r2=0.1,
         ):
-    samples_to_keep = _identify_samples_with_enough_data(
+    
+    # Filtrado de muestras/individuos
+    # Esto debe hacerse primero, ya que los individuos afectan al cálculo de MAF y del %missingness de SNP
+    
+    # Por tener NaN en su fenotipo
+    samples_to_keep_pheno = _get_samples_with_known_phenotypes(phenotypes)
+    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_pheno)
+
+    # Por datos genotípicos faltantes
+    samples_to_keep_geno = _get_samples_with_enough_genotype_data(
         variants, max_missing_rate=max_sample_gt_missing_rate
     )
-    # Filtramos por datos faltantes de muestra y de SNP
-    variants = pynei.var_filters.filter_samples(variants, samples_to_keep)
+    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_geno)
+
+    # Filtrado de SNPs, por datos faltantes, LD y MAF
     variants = pynei.filter_by_missing_data(
         variants, max_allowed_missing_rate=max_var_gt_missing_rate
     )
-    # Filtramos por LD y MAF
+
     variants = pynei.filter_by_ld_and_maf(
         variants, max_allowed_maf=max_allowed_maf, min_allowed_r2=min_allowed_r2
     )
     return variants
 
-# Función "filter_data_for_GWAS"(variants, params)
-def filter_data_for_GWAS(variants: Variants,
+# Para filtrar datos para GWAS según los parámetros indicados
+def filter_genotypes_for_GWAS(variants: Variants,
+        phenotypes:pd.Series,
         max_sample_gt_missing_rate=0.05,
         max_var_gt_missing_rate=0.05,
         max_allowed_maf=0.95,
         ):
-    samples_to_keep = _identify_samples_with_enough_data(
+
+    # Filtrado de muestras/individuos
+    # Esto debe hacerse primero, ya que los individuos afectan al cálculo de MAF y del %missingness de SNP
+    
+    # Por tener NaN en su fenotipo
+    samples_to_keep_pheno = _get_samples_with_known_phenotypes(phenotypes)
+    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_pheno)
+
+    # Por datos genotípicos faltantes
+    samples_to_keep_geno = _get_samples_with_enough_genotype_data(
         variants, max_missing_rate=max_sample_gt_missing_rate
     )
-    # Filtramos por datos faltantes de muestra y de SNP
-    variants = pynei.var_filters.filter_samples(variants, samples_to_keep)
+    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_geno)
+
+    # Filtrado de SNPs, por datos faltantes y MAF (para GWAS no filtramos por LD)
     variants = pynei.filter_by_missing_data(
         variants, max_allowed_missing_rate=max_var_gt_missing_rate
     )
-    # Filtramos por MAF
     variants = pynei.filter_by_maf(variants, max_allowed_maf=max_allowed_maf)
+
     return variants
 
-'''
-# Función para hacer el PCA con los parámetros de filtrado indicados
-# Inputs --> Objeto variants, 4 parámetros
-def do_pca_with_filters(variants:Variants,
-        max_sample_gt_missing_rate=0.05,
-        max_var_gt_missing_rate=0.05,
-        max_allowed_maf=0.95,
-        min_allowed_r2=0.1,
-        ):
 
-    filtered_vars = filter_data_for_PCA(variants, 
-            max_sample_gt_missing_rate,
-            max_var_gt_missing_rate,
-            max_allowed_maf,
-            min_allowed_r2
-            )
+# Para filtrar individuos en el pd.Series de fenotipos
+def filter_phenotypes(
+    phenotypes: pd.Series,
+    filtered_samples_idx,
+) -> pd.Series:
+    """
+    Selecciona y reordena los fenotipos de los individuos de filtered_samples_idx
+    (Los que pasaron la criba al filtrar el objeto Variants)
+    
+    Parámetros
+    ----------
+    phenotypes : pd.Series
+        Valores de fenotipos, indexados por ID de muestra
 
-    pca = pynei.do_pca_with_vars(filtered_vars, transform_to_biallelic=True)
-    return pca
-'''
+    filtered_samples_idx
+        IDs de muestra que deseamos mantener, en el orden deseado
+
+    Returns
+    -------
+    pd.Series
+        Fenotipos filtrados, ordenados igual que filtered_samples_idx
+
+    Raises
+    ------
+    ValueError
+        Si hay alguna muestra de filtered_samples_idx que no exista en phenotypes
+    """
+    missing_samples = [
+        sample for sample in filtered_samples_idx
+        if sample not in phenotypes.index
+    ]
+
+    if missing_samples:
+        raise ValueError(
+            "Some samples present in the genotype data are missing "
+            "from the phenotype data: "
+            + ", ".join(map(str, missing_samples))
+        )
+
+    return phenotypes.loc[filtered_samples_idx]
 
 
-# Función para extraer datos necesarios para construir la tabla de resultados
+# Para extraer datos necesarios para construir la tabla de resultados
 def _extract_variant_data(filtered_vars:Variants):
     """
     Extrae toda la información necesaria de un objeto Variants ya filtrado
@@ -174,7 +372,8 @@ def _extract_variant_data(filtered_vars:Variants):
         "non_major_alleles": non_major_alleles_list,
     }
 
-# Función do_gwas(filtered_variants, phenotypes:pd.Dataframe?, covariables??: dataframe?, type_of_phenotype)
+
+# Función do_gwas(filtered_variants, phenotypes:pd.Series, covariables??: dataframe?, type_of_phenotype)
 
 def do_gwas(filtered_vars:Variants, 
         phenotypes:pd.Series, 

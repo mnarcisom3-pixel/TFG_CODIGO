@@ -11,3 +11,18 @@ wheels/
 
 # Directory with data files
 geno_pheno_files
+
+# Files generated when doing PLINK validation
+tests/PLINK_validation/*.exe
+tests/PLINK_validation/*.npz
+tests/PLINK_validation/*.vcf
+tests/PLINK_validation/*.txt
+tests/PLINK_validation/*.log
+tests/PLINK_validation/*.glm.linear
+tests/PLINK_validation/*.glm.logistic.hybrid
+tests/PLINK_validation/*.eigenvec
+tests/PLINK_validation/*.eigenval
+tests/PLINK_validation/*.png
+tests/PLINK_validation/*.pdf
+tests/PLINK_validation/*.csv
+

@@ -151,7 +151,11 @@ def _parse_id(id_):
 
 
 def _parse_var_line(line, num_samples, ploidy=None):
-    fields = line.split(b"\t")
+    # Modificación temporal realizada por el alumno:
+    # Eliminamos los caracteres de fin de línea (\r y/o \n) antes de parsear
+    # los campos del VCF, para evitar errores cuando el último genotipo es './.'.
+    fields = line.rstrip(b"\r\n").split(b"\t") # Esta es la única línea que hemos modificado
+    
     ref = fields[3].decode()
     alt = fields[4]
     if alt != b".":

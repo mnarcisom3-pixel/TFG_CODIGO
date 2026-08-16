@@ -5,11 +5,17 @@ con las funciones de la librería pynei, necesarias para leer VCF, filtrar, hace
 from pathlib import Path
 from io import BytesIO
 
+from gwaslib.quantitative import linreg_3d, linreg_sm
+from gwaslib.qualitative import logreg_3d, logreg_sm
+
 import pynei
-import gwaslib as gw
+from pynei.gt_counts import _count_alleles_per_var
+from pynei.config import DEF_POP_NAME
+from pynei.variants import VariantsChunk
 
 import pandas as pd
 import numpy as np
+from statsmodels.stats.multitest import multipletests
 
 # Leer el archivo input de fenotipos (.csv o .xlsx)
 # Esta función hace, básicamente, 4 cosas: 
@@ -159,6 +165,31 @@ def load_phenotypes(
 
     return phenotypes
 
+# Para identificar individuos que no coinciden entre el vcf y el excel/csv de fenotipos,
+# antes de hacer ningún filtrado!
+def compare_crude_sample_ids(variants:Variants, phenotypes: pd.Series) -> dict:
+    genotype_samples = set(variants.samples)
+    phenotype_samples = set(phenotypes.index)
+
+    shared = genotype_samples & phenotype_samples
+    genotype_only = genotype_samples - phenotype_samples
+    phenotype_only = phenotype_samples - genotype_samples
+
+    return {
+        "shared": shared,
+        "genotype_only": genotype_only,
+        "phenotype_only": phenotype_only,
+    }
+'''
+# Para visualizar esta información, correr algo como
+crude_id_comparison = compare_crude_sample_ids(variants, phenotypes)
+
+print(
+    f"{len(crude_id_comparison['shared'])} samples shared; "
+    f"{len(crude_id_comparison['genotype_only'])} genotype-only; "
+    f"{len(crude_id_comparison['phenotype_only'])} phenotype-only."
+)
+'''
 # Para identificar los individuos/muestras cuyo fenotipo es conocido (no es NaN)
 def _get_samples_with_known_phenotypes(phenotypes: pd.Series):
     return phenotypes.index[phenotypes.notna()].to_numpy()
@@ -186,15 +217,22 @@ def filter_genotypes_for_PCA(variants: Variants,
     # Filtrado de muestras/individuos
     # Esto debe hacerse primero, ya que los individuos afectan al cálculo de MAF y del %missingness de SNP
     
+    # Por datos genotípicos faltantes
+
+    # NOTA: Es muy importante hacer primero este filtro (antes del de NaN)
+    # El motivo es que la función _get_samples_with_enough_genotype_data()
+    # usa un objeto variants. Si hacemos primero el filtrado por NaN, el objeto variants
+    # que le demos a esta función será de un solo uso, y lo consumiremos, impidiendo que sigamos filtrando
+
+    samples_to_keep_geno = _get_samples_with_enough_genotype_data(
+        variants, max_missing_rate=max_sample_gt_missing_rate # Aquí variants todavía no está filtrado, así que es reutilizable (no lo consumiremos)
+    ) 
+    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_geno)
+
     # Por tener NaN en su fenotipo
     samples_to_keep_pheno = _get_samples_with_known_phenotypes(phenotypes)
     variants = pynei.var_filters.filter_samples(variants, samples_to_keep_pheno)
 
-    # Por datos genotípicos faltantes
-    samples_to_keep_geno = _get_samples_with_enough_genotype_data(
-        variants, max_missing_rate=max_sample_gt_missing_rate
-    )
-    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_geno)
 
     # Filtrado de SNPs, por datos faltantes, LD y MAF
     variants = pynei.filter_by_missing_data(
@@ -217,15 +255,22 @@ def filter_genotypes_for_GWAS(variants: Variants,
     # Filtrado de muestras/individuos
     # Esto debe hacerse primero, ya que los individuos afectan al cálculo de MAF y del %missingness de SNP
     
+    # Por datos genotípicos faltantes
+
+    # NOTA: Es muy importante hacer primero este filtro (antes del de NaN)
+    # El motivo es que la función _get_samples_with_enough_genotype_data()
+    # usa un objeto variants. Si hacemos primero el filtrado por NaN, el objeto variants
+    # que le demos a esta función será de un solo uso, y lo consumiremos, impidiendo que sigamos filtrando
+
+    samples_to_keep_geno = _get_samples_with_enough_genotype_data(
+        variants, max_missing_rate=max_sample_gt_missing_rate # Aquí variants todavía no está filtrado, así que es reutilizable (no lo consumiremos)
+    ) 
+    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_geno)
+
     # Por tener NaN en su fenotipo
     samples_to_keep_pheno = _get_samples_with_known_phenotypes(phenotypes)
     variants = pynei.var_filters.filter_samples(variants, samples_to_keep_pheno)
 
-    # Por datos genotípicos faltantes
-    samples_to_keep_geno = _get_samples_with_enough_genotype_data(
-        variants, max_missing_rate=max_sample_gt_missing_rate
-    )
-    variants = pynei.var_filters.filter_samples(variants, samples_to_keep_geno)
 
     # Filtrado de SNPs, por datos faltantes y MAF (para GWAS no filtramos por LD)
     variants = pynei.filter_by_missing_data(
@@ -244,7 +289,7 @@ def filter_phenotypes(
     """
     Selecciona y reordena los fenotipos de los individuos de filtered_samples_idx
     (Los que pasaron la criba al filtrar el objeto Variants)
-    
+
     Parámetros
     ----------
     phenotypes : pd.Series
@@ -278,113 +323,101 @@ def filter_phenotypes(
     return phenotypes.loc[filtered_samples_idx]
 
 
-# Para extraer datos necesarios para construir la tabla de resultados
-def _extract_variant_data(filtered_vars:Variants):
+# Para extraer de un Chunk los datos necesarios para construir la tabla de resultados
+def _extract_chunk_data(chunk: VariantsChunk) -> dict:
     """
-    Extrae toda la información necesaria de un objeto Variants ya filtrado
-    realizando únicamente una pasada sobre los chunks.
+    Extrae de un VariantsChunk:
 
-    Returns
-    -------
-    dict
-        {
-            "mat012": np.ndarray,
-            "chromosome": list[str],
-            "position": list[int],
-            "major_allele": list[str],
-            "non_major_alleles": list[str]
-        }
+    - matriz 012
+    - cromosoma
+    - posición
+    - alelo mayoritario
+    - alelos no mayoritarios
+
+    La matriz 012 se calcula siguiendo la misma lógica utilizada por
+    pynei.pca._create_012_gt_matrix(..., transform_to_biallelic=True).
     """
 
-    mat012_chunks = []
-    chromosomes = []
-    positions = []
-    major_alleles_list = []
-    non_major_alleles_list = []
+    # ============================================================
+    # 1. Calcular alelo mayoritario de cada SNP
+    # ============================================================
 
-    for chunk in filtered_vars.iter_vars_chunks():
+    res = _count_alleles_per_var(chunk, calc_freqs=False)
 
-        # ==========================================================
-        # Construcción de la matriz012
-        # (idéntica a la implementación de Pynei)
-        # ==========================================================
+    allele_counts = (
+        res["counts"][DEF_POP_NAME]["allele_counts"].values
+    )
 
-        res = pynei.gt_counts._count_alleles_per_var(chunk, calc_freqs=False)
+    num_genotyped_alleles_per_var = allele_counts.sum(axis=1)
 
-        allele_counts = (
-            res["counts"][pynei.config.DEF_POP_NAME]["allele_counts"].values
+    if np.any(num_genotyped_alleles_per_var == 0):
+        raise ValueError(
+            "There are variants that only have missing data"
         )
 
-        num_genotyped_alleles_per_var = allele_counts.sum(axis=1)
+    major_allele_idxs = np.argmax(allele_counts, axis=1)
 
-        if np.any(num_genotyped_alleles_per_var == 0):
-            raise ValueError(
-                "There are variants that only have missing data."
-            )
+    # ============================================================
+    # 2. Crear matriz 012
+    # ============================================================
 
-        major_allele_idxs = np.argmax(allele_counts, axis=1)
+    gt_array = chunk.gts.gt_values
 
-        gt_array = chunk.gts.gt_values
+    matriz012 = np.sum(
+        gt_array != major_allele_idxs[:, None, None],
+        axis=2,
+    )
 
-        gts012 = np.sum(
-            gt_array != major_allele_idxs[:, None, None],
-            axis=2,
-        )
+    # ============================================================
+    # 3. Obtener metadata de los SNPs
+    # ============================================================
 
-        mat012_chunks.append(gts012)
+    chromosomes = chunk.vars_info["chrom"].to_numpy()
+    positions = chunk.vars_info["pos"].to_numpy()
 
-        # ==========================================================
-        # Información de los SNPs
-        # ==========================================================
+    major_alleles = []
+    non_major_alleles = []
 
-        chromosomes.extend(chunk.vars_info["chrom"].tolist())
-        positions.extend(chunk.vars_info["pos"].tolist())
+    for variant_idx, major_idx in enumerate(major_allele_idxs):
 
-        allele_table = chunk.alleles.to_numpy()
+        alleles = chunk.alleles.iloc[variant_idx]
 
-        for row, major_idx in enumerate(major_allele_idxs):
+        major_allele = alleles.iloc[major_idx]
 
-            alleles = allele_table[row]
+        other_alleles = [
+            allele
+            for idx, allele in enumerate(alleles)
+            if idx != major_idx and not pd.isna(allele) # Pynei rellena con <NA> las columnas de alelos que no existen
+]
+        # Añadimos ambos a las listas
+        major_alleles.append(major_allele)
 
-            major_alleles_list.append(alleles[major_idx])
-
-            non_major = []
-
-            for idx, allele in enumerate(alleles):
-
-                if idx == major_idx:
-                    continue
-
-                if pd.isna(allele):
-                    continue
-
-                non_major.append(str(allele))
-
-            non_major_alleles_list.append(",".join(non_major))
-
-    mat012 = np.vstack(mat012_chunks)
+        # Lo dejamos como string para que el DataFrame final sea sencillo.
+        # En variantes multialélicas puede contener varios alelos.
+        non_major_alleles.append(",".join(other_alleles))
 
     return {
-        "mat012": mat012,
+        "mat012": matriz012,
         "chromosome": chromosomes,
         "position": positions,
-        "major_allele": major_alleles_list,
-        "non_major_alleles": non_major_alleles_list,
+        "major_allele": np.asarray(major_alleles),
+        "non_major_alleles": np.asarray(non_major_alleles),
     }
 
 
 # Función do_gwas(filtered_variants, phenotypes:pd.Series, covariables??: dataframe?, type_of_phenotype)
-
 def do_gwas(filtered_vars:Variants, 
-        phenotypes:pd.Series, 
+        filtered_phenotypes:pd.Series, 
         covariates:pd.DataFrame,
         type_of_phenotype: "cuantitativo" | "cualitativo (binario)",
+        sort_by_significance: bool = False,
+        desired_chunk_size:int=10_000,
         ):
 
     # Comprobar si los IDs de todas las muestras coinciden en orden entre genotypes, phenotypes y covariates
     sample_ids = filtered_vars.samples
 
-    if not np.array_equal(sample_ids, phenotypes.index.to_numpy()):
+    if not np.array_equal(sample_ids, filtered_phenotypes.index.to_numpy()):
         raise ValueError(
             "The sample IDs in the phenotype table do not match the filtered genotype data."
         )
@@ -393,39 +426,154 @@ def do_gwas(filtered_vars:Variants,
         raise ValueError(
             "The sample IDs in the covariate table do not match the filtered genotype data."
         )
+    # ============================================================
+    # 2. Pasar phenotype y covariables a NumPy
+    # ============================================================
 
-    # Extraer toda la info. necesaria del objeto Variants filtrado
-    all_info = _extract_variant_data(filtered_vars)
+    phenotypes_array = filtered_phenotypes.to_numpy(dtype=float)
 
-    mat_012 = all_info['mat012']
-    chromosomes = all_info['chromosome']
-    positions = all_info['position']
-    major_alleles = all_info['major_allele']
-    non_major_alleles = all_info['non_major_alleles']
+    covariates_array = covariates.to_numpy(dtype=float)
 
-    # A partir del pd.Series de fenotipos, obtener un np.ndarray
-    phenotypes_array = phenotypes.to_numpy()
-    # A partir del pd.Dataframe de covariables, obtener un np.ndarray
-    covariates_array = covariates.to_numpy()
-    # Si K es mayor que 10, coger solo los 10 primeros PCs
+    # Coger solo 10 PCs
     if covariates_array.shape[1] > 10:
         covariates_array = covariates_array[:, :10]
 
-    # Si el usuario indicó que desea hacer un GWAS cuantitativo
-    if type_of_phenotype=='cuantitativo':
-        res = gw.quantitative.linreg_3d(mat_012, phenotypes_array, covariates_array)
+    # ============================================================
+    # 3. Elegir función de GWAS
+    # ============================================================
 
+    if type_of_phenotype == "cuantitativo":
+        regression_function = linreg_3d
 
-    # Si, en cambio, indicó que desea hacer un cualitativo
-    elif type_of_phenotype=='cualitativo (binario)':
-        res = gw.qualitative.logreg_3d(mat_012, phenotypes_array, covariates_array)
+    elif type_of_phenotype == "cualitativo (binario)":
+        regression_function = logreg_3d
 
-    # Construir el Dataframe de resultados
-    # Extraer cromosoma, posición, y alelos de cada SNP
+    else:
+        raise ValueError(
+            "phenotype_type must be 'quantitative' or 'qualitative'."
+        )
 
-    # Calcular -log10(p-valores)
+    # ============================================================
+    # 4. Listas donde iremos acumulando resultados de los chunks
+    # ============================================================
 
-    # Calcular p-valores corregidos por Bonferroni y FDR
+    chromosomes = []
+    positions = []
+    major_alleles = []
+    non_major_alleles = []
 
-    # Construir Dataframe con todos los SNPs ordenados por cromosoma y posición
+    betas = []
+    ses = []
+    p_values = []
+
+    # ============================================================
+    # 5. Procesamiento chunk por chunk
+    # ============================================================
+
+    for chunk in filtered_vars.iter_vars_chunks(
+        desired_num_vars_per_chunk=desired_chunk_size
+    ):
+
+        # -----------------------------------------
+        # Extraer genotipos + metadata
+        # -----------------------------------------
+
+        chunk_data = _extract_chunk_data(chunk)
+
+        matriz012_chunk = chunk_data["mat012"]
+
+        # -----------------------------------------
+        # Ejecutar regresiones del chunk
+        # -----------------------------------------
         
+        results = regression_function(
+            matriz012_chunk,
+            phenotypes_array,
+            covariates_array,
+        )
+
+        # -----------------------------------------
+        # Guardar metadata
+        # -----------------------------------------
+
+        chromosomes.append(
+            chunk_data["chromosome"]
+        )
+
+        positions.append(
+            chunk_data["position"]
+        )
+
+        major_alleles.append(
+            chunk_data["major_allele"]
+        )
+
+        non_major_alleles.append(
+            chunk_data["non_major_alleles"]
+        )
+
+        # -----------------------------------------
+        # Guardar resultados del GWAS
+        # -----------------------------------------
+        
+        betas.append(results["beta"])
+        ses.append(results["SE"])
+        p_values.append(results["p_val"])
+
+    # ============================================================
+    # 6. Unir resultados de todos los chunks
+    # ============================================================
+
+    chromosomes = np.concatenate(chromosomes)
+    positions = np.concatenate(positions)
+    major_alleles = np.concatenate(major_alleles)
+    non_major_alleles = np.concatenate(non_major_alleles)
+
+    betas = np.concatenate(betas)
+    ses = np.concatenate(ses)
+    p_values = np.concatenate(p_values)
+
+    # ============================================================
+    # 7. Corrección por múltiples tests
+    # ============================================================
+    p_bonferroni = multipletests(p_values, method="bonferroni")[1]
+    p_fdr = multipletests(p_values, method="fdr_bh")[1]
+
+    # ============================================================
+    # 8. -log10
+    # ============================================================
+
+    # Evita log10(0) si algún p-valor es tan pequeño que NumPy
+    # lo representa como cero.
+    tiny = np.finfo(float).tiny
+
+    neg_log10_p = -np.log10(np.maximum(p_values, tiny))
+
+    neg_log10_bonferroni = -np.log10(np.maximum(p_bonferroni, tiny))
+
+    neg_log10_fdr = -np.log10(np.maximum(p_fdr, tiny))
+
+    # ============================================================
+    # 9. DataFrame final
+    # ============================================================
+    gwas_results = pd.DataFrame(
+        {
+            "Chromosome": chromosomes,
+            "Position": positions,
+            "Non-effect allele": major_alleles,
+            "Effect allele(s)": non_major_alleles,
+            "beta": betas,
+            "SE": ses,
+            "-log10(p)": neg_log10_p,
+            "-log10(Bonferroni)": neg_log10_bonferroni,
+            "-log10(FDR_BH)": neg_log10_fdr,
+        }
+    )
+
+    if sort_by_significance:
+        gwas_results = gwas_results.sort_values(
+            by="-log10(p)",
+            ascending=False,
+        ).reset_index(drop=True)
+
+    return gwas_results

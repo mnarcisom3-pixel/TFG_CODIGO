@@ -27,14 +27,14 @@ matriz012_crude = pynei.pca.create_012_gt_matrix(variants, transform_to_bialleli
 print(matriz012_crude.shape)
 
 # LEER FICHERO DE FENOTIPOS ---------------------------------------------------------------------------------
-# Cualitativos
-#path_excel_quali = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "Excel_files" / "quali_trait_inflorescence_forked_type_clean.xlsx"
-path_csv_quali = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "CSV_files" / "quali_trait_inflorescence_forked_type_clean.csv"
+# Cuantitativos
+#path_excel_quanti = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "Excel_files" / "quanti_trait_mean_fruit_weight.xlsx"
+path_csv_quanti = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "CSV_files" / "quanti_trait_mean_fruit_weight.csv"
 
-df_crude_feno_quali = integration.load_phenotypes(path_csv_quali)
+df_crude_feno_quanti = integration.load_phenotypes(path_csv_quanti)
 
 # Comparación de muestras VCF-Fenotipos
-crude_id_comparison = integration.compare_crude_sample_ids(variants, df_crude_feno_quali)
+crude_id_comparison = integration.compare_crude_sample_ids(variants, df_crude_feno_quanti)
 
 print(
     f"{len(crude_id_comparison['shared'])} samples shared; "
@@ -43,9 +43,9 @@ print(
 )
 
 # FILTRAR GENOTIPOS Y FENOTIPOS PARA EL GWAS
-filtered_vars_for_GWAS = integration.filter_genotypes_for_GWAS(variants, df_crude_feno_quali)
+filtered_vars_for_GWAS = integration.filter_genotypes_for_GWAS(variants, df_crude_feno_quanti)
 
-df_filtered_feno = integration.filter_phenotypes(df_crude_feno_quali, filtered_vars_for_GWAS.samples)
+df_filtered_feno = integration.filter_phenotypes(df_crude_feno_quanti, filtered_vars_for_GWAS.samples)
 print(df_filtered_feno.to_numpy().shape)
 
 # PCA
@@ -56,7 +56,8 @@ filtered_vars_for_PCA = integration.filter_genotypes_for_PCA(variants, df_crude_
 '''
 # Importamos CSV
 PCA_DIR = PROJECT_DIR / "geno_pheno_files" / "PCA_FILES_from_VCFs"
-path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quali_trait_inflorescence_forked_type_clean.csv"
+path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quanti_trait_mean_fruit_weight.csv"
+
 
 df_all_pcs = pd.read_csv(path_PCA, index_col=0)
 
@@ -64,7 +65,7 @@ df_all_pcs = pd.read_csv(path_PCA, index_col=0)
 gwas_results = integration.do_gwas(filtered_vars=filtered_vars_for_GWAS,
                 filtered_phenotypes=df_filtered_feno,
                 covariates=df_all_pcs,
-                type_of_phenotype="cualitativo (binario)",
+                type_of_phenotype="cuantitativo",
                 sort_by_significance=False,
                 )
 
@@ -73,6 +74,6 @@ print(gwas_results)
 fig, ax = visualization.create_manhattan_plot(
     gwas_results,
     y_axis_variable="p",
-    phenotype_name="QUALI_inflorescence_forked_type"
+    phenotype_name="QUANTI_mean_fruit_weight"
 )
 plt.show()

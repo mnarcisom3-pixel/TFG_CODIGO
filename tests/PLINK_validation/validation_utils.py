@@ -211,3 +211,282 @@ def render_metrics_table(df, outfile, title=None):
     plt.savefig(outfile, dpi=200, bbox_inches="tight")
     plt.close(fig)
     print(f"Guardada tabla: {outfile}")
+
+    # PNG
+    plt.savefig(
+        outfile,
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    # PDF
+    pdf_path = outfile.rsplit(".", 1)[0] + ".pdf"
+
+    plt.savefig(
+        pdf_path,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)
+
+    print(f"Guardada figura: {outfile}")
+    print(f"Guardada figura: {pdf_path}")
+
+
+# Creamos aquí las funciones para hacer la Validación con datos reales de Varitome
+
+
+def plot_pvalue_comparison(
+    own_results,
+    plink_df,
+    title,
+    outfile,
+):
+    p_own = np.asarray(
+        own_results["p_val"],
+        dtype=float,
+    )
+
+    p_plink = pd.to_numeric(
+        plink_df["P"],
+        errors="coerce",
+    ).to_numpy()
+
+    # Solo comparar SNPs con resultados válidos en ambos programas
+    valid = (
+        np.isfinite(p_own)
+        & np.isfinite(p_plink)
+        & (p_own >= 0)
+        & (p_plink > 0)
+    )
+
+    p_own = p_own[valid]
+    p_plink = p_plink[valid]
+
+    p_own = np.clip(p_own, 1e-300, 1)
+    p_plink = np.clip(p_plink, 1e-300, 1)
+
+    logp_own = -np.log10(p_own)
+    logp_plink = -np.log10(p_plink)
+
+    pearson_r = np.corrcoef(
+        logp_own,
+        logp_plink,
+    )[0, 1]
+
+    print(f"SNPs comparados: {len(logp_own)}")
+
+    fig, ax = plt.subplots(figsize=(7, 7))
+
+    ax.scatter(
+        logp_own,
+        logp_plink,
+        s=10,
+        alpha=0.35,
+        rasterized=True,
+    )
+
+    lim_min = min(logp_own.min(), logp_plink.min())
+    lim_max = max(logp_own.max(), logp_plink.max())
+
+    ax.plot(
+        [lim_min, lim_max],
+        [lim_min, lim_max],
+        "k--",
+        linewidth=1,
+        label="y = x",
+    )
+    ax.legend(frameon=True, prop={'weight': 'bold'}, loc="center right")
+
+    ax.set_xlabel("-log10(p) — gwaslib")
+    ax.set_ylabel("-log10(p) — PLINK2")
+    ax.set_title(title)
+
+    ax.text(
+        0.05,
+        0.95,
+        f"Pearson r = {pearson_r:.4f}",
+        transform=ax.transAxes,
+        va="top",
+        weight='bold',
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        outfile,
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    pdf_path = outfile.rsplit(".", 1)[0] + ".pdf"
+
+    plt.savefig(
+        pdf_path,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)
+
+    print(f"Guardada figura: {outfile}")
+    print(f"Guardada figura: {pdf_path}")
+    print(f"Pearson r = {pearson_r:.6f}")
+
+
+
+def plot_pvalue_comparison_showing_firth(
+    own_results,
+    plink_df,
+    title,
+    outfile,
+):
+    p_own = np.asarray(
+        own_results["p_val"],
+        dtype=float,
+    )
+
+    p_plink = pd.to_numeric(
+        plink_df["P"],
+        errors="coerce",
+    ).to_numpy()
+
+    valid = (
+        np.isfinite(p_own)
+        & np.isfinite(p_plink)
+        & (p_own >= 0)
+        & (p_plink > 0)
+    )
+
+    p_own = p_own[valid]
+    p_plink = p_plink[valid]
+
+    p_own = np.clip(p_own, 1e-300, 1)
+    p_plink = np.clip(p_plink, 1e-300, 1)
+
+    logp_own = -np.log10(p_own)
+    logp_plink = -np.log10(p_plink)
+
+    # Este es el Pearson r global (para todos los SNPs, sean standard o Firth)
+    pearson_r = np.corrcoef(
+        logp_own,
+        logp_plink,
+    )[0, 1]
+
+    print(f"SNPs comparados: {len(logp_own)}")
+
+    fig, ax = plt.subplots(figsize=(7, 7))
+
+    # ============================================================
+    # Scatter
+    # ============================================================
+
+    if "FIRTH?" in plink_df.columns:
+
+        firth_used = (
+            plink_df.loc[valid, "FIRTH?"]
+            .astype(str)
+            .to_numpy()
+            == "Y"
+        )
+        # Este es el Pearson r calculado solo para los SNPs donde PLINK
+        # hizo logística estándar 
+        pearson_standard = np.corrcoef(
+            logp_own[~firth_used],
+            logp_plink[~firth_used],
+        )[0, 1]
+
+        '''
+        pearson_firth = np.corrcoef(
+            logp_own[firth_used],
+            logp_plink[firth_used],
+        )[0, 1]
+        '''
+
+        # Logística estándar
+        ax.scatter(
+            logp_own[~firth_used],
+            logp_plink[~firth_used],
+            s=10,
+            alpha=0.35,
+            label="Standard logistic",
+            rasterized=True,
+        )
+
+        # Firth
+        ax.scatter(
+            logp_own[firth_used],
+            logp_plink[firth_used],
+            s=10,
+            alpha=0.35,
+            label="Firth fallback",
+            rasterized=True,
+        )
+
+        ax.legend(frameon=True, prop={'weight': 'bold'}, loc="center right")
+
+
+
+    else:
+
+        # Caso cuantitativo (.glm.linear)
+        ax.scatter(
+            logp_own,
+            logp_plink,
+            s=10,
+            alpha=0.35,
+            rasterized=True,
+        )
+
+    # ============================================================
+    # Línea y = x
+    # ============================================================
+
+    lim_min = min(logp_own.min(), logp_plink.min())
+    lim_max = max(logp_own.max(), logp_plink.max())
+
+    ax.plot(
+        [lim_min, lim_max],
+        [lim_min, lim_max],
+        "k--",
+        linewidth=1,
+        label="y = x",
+    )
+    #ax.legend(frameon=True, prop={'weight': 'bold'}, loc="center right")
+
+    ax.set_xlabel("-log10(p) — gwaslib")
+    ax.set_ylabel("-log10(p) — PLINK2")
+    ax.set_title(title)
+
+    ax.text(
+        0.05,
+        0.95,
+        (
+            f"Pearson r (all SNPs) = {pearson_r:.4f}\n"
+            f"Pearson r (only SNPs with Standard logistic) = {pearson_standard:.4f}\n"
+            # f"Pearson r (only SNPs with Firth fallback) = {pearson_firth:.4f}"
+        ),
+        transform=ax.transAxes,
+        va="top",
+        weight='bold',
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        outfile,
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    pdf_path = outfile.rsplit(".", 1)[0] + ".pdf"
+
+    plt.savefig(
+        pdf_path,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)
+
+    print(f"Guardada figura: {outfile}")
+    print(f"Guardada figura: {pdf_path}")
+    print(f"Pearson r = {pearson_r:.6f}")

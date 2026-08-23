@@ -18,6 +18,16 @@ regresión de Firth; comprueba con `dir` el nombre exacto):
     --glm hide-covar cols=chrom,pos,ref,alt1,test,nobs,beta,se,p `
     --out gwas_plink2_quali_ownpcs
 
+# O con los datos de Varitome
+.\plink2.exe --vcf Varitome_filt_100mb_inflorescence_forked.vcf --double-id --1 `
+    --pheno Varitome_filt_100mb_inflorescence_forked_pheno.txt --pheno-name PHENO `
+    --covar Varitome_filt_100mb_inflorescence_forked_own_covars.txt `
+    --glm hide-covar cols=chrom,pos,ref,alt1,test,nobs,beta,se,p `
+    --out Varitome_gwas_plink2_quali_ownpcs
+
+# Si queremos la columna FIRTH, poner
+    --glm hide-covar firth-fallback cols=chrom,pos,ref,alt1,firth,test,nobs,beta,se,p `
+
     # Escenario 2: PCA calculado por PLINK, sobre el mismo VCF
 .\plink2.exe --vcf gwas_quali.vcf --double-id --pca 10 --out gwas_quali_pca_from_plink
 

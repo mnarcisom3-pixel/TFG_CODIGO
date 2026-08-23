@@ -2,15 +2,19 @@
 Genera los datos de juguete cuantitativos y los exporta a formato PLINK2.
 Necesita plink_io.py en el mismo directorio (o en el PYTHONPATH).
 """
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 import gwaslib.quantitative as gw_quant
+from gwaslib import integration
 import pynei
 
-from plink_io import export_to_plink
+from plink_io import export_to_plink, export_to_plink_with_real_positions
 
+# CON DATOS DE JUGUETE
+'''
 # ---------------------------------------------------------------------------
 # 1. Generación de datos (idéntico a tu script original)
 # ---------------------------------------------------------------------------
@@ -64,3 +68,61 @@ export_to_plink(matriz012_test, phenotypes_test, covariables_test, sample_ids, "
 
 own_results = gw_quant.linreg_3d(matriz012_test, phenotypes_test, covariables_test)
 np.savez("own_results_quanti.npz", **own_results)
+
+'''
+# Con datos reales
+PROJECT_DIR = Path(__file__).parent.parent.parent
+
+# SELECCIONAR VCF ------------------------------------------------------------------------------------------
+# Una versión aún más reducida (20MB) para que el tiempo de computación sea menor
+#path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_20mb_reduced.vcf"
+
+# El de probar la web, de Varitome reducido a 100MB
+path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_reduced_all_chroms.vcf"
+
+# LEER VCF CON PYNEI ----------------------------------------------------------------------------------------
+variants = pynei.io_vcf.vars_from_vcf(path_VCF)
+
+matriz012_crude = pynei.pca.create_012_gt_matrix(variants, transform_to_biallelic=True)
+print(matriz012_crude.shape)
+
+# LEER FICHERO DE FENOTIPOS ---------------------------------------------------------------------------------
+# Cuantitativos
+path_csv_quanti = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "CSV_files" / "quanti_trait_mean_color_b.csv"
+
+df_crude_feno_quanti = integration.load_phenotypes(path_csv_quanti)
+
+# FILTRAR GENOTIPOS Y FENOTIPOS PARA EL GWAS
+filtered_vars_for_GWAS = integration.filter_genotypes_for_GWAS(variants, df_crude_feno_quanti)
+
+df_filtered_feno = integration.filter_phenotypes(df_crude_feno_quanti, filtered_vars_for_GWAS.samples)
+print(df_filtered_feno.to_numpy().shape)
+
+# Importamos PCA en CSV
+PCA_DIR = PROJECT_DIR / "geno_pheno_files" / "PCA_FILES_from_VCFs"
+path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quanti_trait_mean_color_b.csv"
+
+df_all_pcs = pd.read_csv(path_PCA, index_col=0)
+
+# EJECUTAR GWAS ----------------------------------------------------------------------------------------------
+gwas_results = integration.do_gwas(filtered_vars=filtered_vars_for_GWAS,
+                filtered_phenotypes=df_filtered_feno,
+                covariates=df_all_pcs,
+                type_of_phenotype="cuantitativo",      # "cualitativo (binario)",
+                sort_by_significance=False,
+                )
+
+filtered_vars_for_012 = integration.filter_genotypes_for_GWAS(variants, df_crude_feno_quanti)
+
+real_samples_ids = filtered_vars_for_012.samples
+mat012_filtrada = pynei.pca.create_012_gt_matrix(filtered_vars_for_012, transform_to_biallelic=True)
+feno_array = df_filtered_feno.to_numpy()
+pcs_array = df_all_pcs.to_numpy()[:, :10]
+
+#sample_ids = [f"IND{i + 1}" for i in range(N_indivs)]
+#export_to_plink(mat012_filtrada, feno_array, pcs_array, real_samples_ids, "Varitome_filt_20mb_fruit_weight")
+
+export_to_plink_with_real_positions(matriz012=mat012_filtrada, phenotypes=feno_array, covariables=pcs_array, gwas_results=gwas_results, sample_ids=real_samples_ids, out_prefix="Varitome_filt_100mb_mean_color_b")
+
+# Export my own results as csv
+gwas_results.to_csv("Varitome_own_results_quanti.csv", index=False)

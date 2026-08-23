@@ -25,6 +25,14 @@ a gwas_plink2_ownpcs para distinguirlo del segundo:
     --glm hide-covar cols=chrom,pos,ref,alt1,test,nobs,beta,se,p `
     --out gwas_plink2_quanti_ownpcs
 
+# O con los datos de Varitome
+.\plink2.exe --vcf Varitome_filt_100mb_mean_color_b.vcf --double-id `
+    --pheno Varitome_filt_100mb_mean_color_b_pheno.txt --pheno-name PHENO `
+    --covar Varitome_filt_100mb_mean_color_b_own_covars.txt `
+    --glm hide-covar cols=chrom,pos,ref,alt1,test,nobs,beta,se,p `
+    --out Varitome_gwas_plink2_quanti_ownpcs
+
+
 Escenario 2 (PCA calculado por PLINK), sobre el mismo VCF:
 
     # 1. Calcular PCA con PLINK (10 componentes)

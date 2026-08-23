@@ -61,6 +61,10 @@ path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quanti_trait_mean_color_b.csv"
 
 df_all_pcs = pd.read_csv(path_PCA, index_col=0)
 
+# PCA plot
+fig, ax = visualization.create_pca_plot(df_all_pcs)
+plt.show()
+
 # EJECUTAR GWAS ----------------------------------------------------------------------------------------------
 gwas_results = integration.do_gwas(filtered_vars=filtered_vars_for_GWAS,
                 filtered_phenotypes=df_filtered_feno,

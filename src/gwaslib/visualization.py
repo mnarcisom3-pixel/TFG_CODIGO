@@ -305,7 +305,7 @@ def create_qq_plot(
         / stats.chi2.ppf(0.5, df=1)
     )
 
-    median_observed_logp = np.median(observed_logp)
+    # median_observed_logp = np.median(observed_logp)
 
     # ============================================================
     # 4. P-valores esperados bajo H0
@@ -373,7 +373,7 @@ def create_qq_plot(
         0.90,
         (
             rf"$\lambda_{{GC}}$ = {lambda_gc:.3f}"
-            f"\nMedian of the observed -log10(p) = {median_observed_logp:.3f}"
+            # f"\nMedian of the observed -log10(p) = {median_observed_logp:.3f}"
         ),
         transform=ax.transAxes,
         va="top",
@@ -388,4 +388,47 @@ def create_qq_plot(
 
     return fig, ax
 
-# Función PC plot(pca_dict)
+# Función PC plot(pca_df)
+def create_pca_plot(
+    covariates: pd.DataFrame,
+):
+    """
+    Representa los dos primeros componentes principales de los individuos.
+
+    Parameters
+    ----------
+    covariates : pd.DataFrame
+        DataFrame de covariables obtenido del PCA.
+        Las filas corresponden a individuos y las columnas a PCs.
+
+    Returns
+    -------
+    fig, ax
+        Figura y eje de Matplotlib.
+    """
+
+    if covariates.shape[1] < 2:
+        raise ValueError("Se necesitan al menos dos componentes principales.")
+
+    pc1 = covariates.iloc[:, 0]
+    pc2 = covariates.iloc[:, 1]
+
+    fig, ax = plt.subplots(figsize=(7, 6))
+
+    ax.scatter(
+        pc1,
+        pc2,
+        s=30,
+        alpha=0.7,
+    )
+
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+
+    ax.set_title(
+        "PCA — PC1 vs PC2"
+    )
+
+    fig.tight_layout()
+
+    return fig, ax

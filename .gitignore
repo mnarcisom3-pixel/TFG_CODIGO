@@ -25,4 +25,4 @@ tests/PLINK_validation/*.eigenval
 tests/PLINK_validation/*.png
 tests/PLINK_validation/*.pdf
 tests/PLINK_validation/*.csv
-
+tests/PLINK_validation/Graphs and Figures

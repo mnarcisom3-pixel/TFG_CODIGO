@@ -29,7 +29,7 @@ print(matriz012_crude.shape)
 # LEER FICHERO DE FENOTIPOS ---------------------------------------------------------------------------------
 # Cuantitativos
 #path_excel_quanti = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "Excel_files" / "quanti_trait_mean_fruit_weight.xlsx"
-path_csv_quanti = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "CSV_files" / "quanti_trait_mean_fruit_weight.csv"
+path_csv_quanti = PROJECT_DIR / "geno_pheno_files" / "PHENOTYPES_from_Ximo" / "CSV_files" / "quanti_trait_mean_color_b.csv"
 
 df_crude_feno_quanti = integration.load_phenotypes(path_csv_quanti)
 
@@ -56,7 +56,7 @@ filtered_vars_for_PCA = integration.filter_genotypes_for_PCA(variants, df_crude_
 '''
 # Importamos CSV
 PCA_DIR = PROJECT_DIR / "geno_pheno_files" / "PCA_FILES_from_VCFs"
-path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quanti_trait_mean_fruit_weight.csv"
+path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quanti_trait_mean_color_b.csv"
 
 
 df_all_pcs = pd.read_csv(path_PCA, index_col=0)
@@ -71,9 +71,17 @@ gwas_results = integration.do_gwas(filtered_vars=filtered_vars_for_GWAS,
 
 print(gwas_results)
 
+# Manhattan plot
 fig, ax = visualization.create_manhattan_plot(
     gwas_results,
     y_axis_variable="p",
-    phenotype_name="QUANTI_mean_fruit_weight"
+    phenotype_name="Mean Color b"
+)
+plt.show()
+
+# QQ-plot
+fig, ax = visualization.create_qq_plot(
+    gwas_results,
+    phenotype_name="Mean Color b",
 )
 plt.show()

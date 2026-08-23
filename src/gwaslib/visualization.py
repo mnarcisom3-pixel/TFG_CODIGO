@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+from scipy import stats
 
 def create_manhattan_plot(
     gwas_results: pd.DataFrame,
@@ -228,9 +228,164 @@ def create_manhattan_plot(
 
     return fig, ax
 
-# do_manhattan_plot()
 
-# Función QQ plot
+def create_qq_plot(
+    gwas_results: pd.DataFrame,
+    phenotype_name: str,
+):
+    """
+    Crea un Q-Q plot a partir del DataFrame generado por do_gwas.
 
+    El gráfico compara los p-valores observados en el GWAS con los
+    p-valores esperados bajo la hipótesis nula de ausencia de asociación.
+
+    Parameters
+    ----------
+    gwas_results : pd.DataFrame
+        DataFrame generado por do_gwas.
+
+    phenotype_name : str
+        Nombre del carácter/fenotipo analizado.
+
+    Returns
+    -------
+    fig, ax
+        Figura y eje de Matplotlib.
+    """
+
+    # ============================================================
+    # 1. Comprobar columna necesaria
+    # ============================================================
+
+    if "-log10(p)" not in gwas_results.columns:
+        raise ValueError(
+            "gwas_results debe contener la columna '-log10(p)'."
+        )
+
+    # ============================================================
+    # 2. Obtener valores observados válidos
+    # ============================================================
+
+    observed_logp = pd.to_numeric(
+        gwas_results["-log10(p)"],
+        errors="coerce",
+    ).to_numpy()
+
+    observed_logp = observed_logp[
+        np.isfinite(observed_logp)
+    ]
+
+    if len(observed_logp) == 0:
+        raise ValueError(
+            "No hay p-valores válidos para generar el Q-Q plot."
+        )
+
+    # ============================================================
+    # 3. Ordenar p-valores observados
+    # ============================================================
+
+    # Valores más significativos primero
+    observed_logp = np.sort(observed_logp)
+
+    num_tests = len(observed_logp)
+
+    # ============================================================
+    # Factor de inflación genómica lambda_GC
+    # ============================================================
+
+    p_values = 10 ** (-observed_logp)
+
+    chi2_values = stats.chi2.isf(
+        p_values,
+        df=1,
+    )
+
+    lambda_gc = (
+        np.median(chi2_values)
+        / stats.chi2.ppf(0.5, df=1)
+    )
+
+    median_observed_logp = np.median(observed_logp)
+
+    # ============================================================
+    # 4. P-valores esperados bajo H0
+    # ============================================================
+
+    expected_p = (
+        np.arange(1, num_tests + 1)
+        / (num_tests + 1)
+    )
+
+    expected_logp = -np.log10(expected_p)
+
+    # Queremos ambos ejes en orden creciente
+    expected_logp = np.sort(expected_logp)
+
+    # ============================================================
+    # 5. Crear figura
+    # ============================================================
+
+    fig, ax = plt.subplots(
+        figsize=(7, 7)
+    )
+
+    ax.scatter(
+        expected_logp,
+        observed_logp,
+        s=10,
+        alpha=0.6,
+        rasterized=True,
+    )
+
+    # ============================================================
+    # 6. Recta esperada y = x
+    # ============================================================
+
+    max_expected = expected_logp.max()
+
+    ax.plot(
+        [0, max_expected],
+        [0, max_expected],
+        "k--",
+        linewidth=1,
+        label="Expected under H₀",
+    )
+
+    # ============================================================
+    # 7. Formato
+    # ============================================================
+
+    ax.set_xlabel(
+        "Expected -log10(p)"
+    )
+
+    ax.set_ylabel(
+        "Observed -log10(p)"
+    )
+
+    ax.set_title(
+        f"Q-Q plot — {phenotype_name}"
+    )
+
+    # Mostrar el factor de inflación lambda
+    ax.text(
+        0.05,
+        0.90,
+        (
+            rf"$\lambda_{{GC}}$ = {lambda_gc:.3f}"
+            f"\nMedian of the observed -log10(p) = {median_observed_logp:.3f}"
+        ),
+        transform=ax.transAxes,
+        va="top",
+    )
+
+    ax.legend()
+
+    ax.set_xlim(left=0)
+    ax.set_ylim(bottom=0)
+
+    fig.tight_layout()
+
+    return fig, ax
 
 # Función PC plot(pca_dict)

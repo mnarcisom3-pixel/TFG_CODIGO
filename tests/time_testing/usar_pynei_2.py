@@ -76,3 +76,10 @@ fig, ax = visualization.create_manhattan_plot(
     phenotype_name="QUALI_inflorescence_forked_type"
 )
 plt.show()
+
+# QQ-plot
+fig, ax = visualization.create_qq_plot(
+    gwas_results,
+    phenotype_name="QUALI_inflorescence_forked_type",
+)
+plt.show()

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # =====================================================================
 np.random.seed(12345)
 
-M_snps = 2000
+M_snps = 10000
 N_indivs = 200
 K_pcs = 10
 
@@ -39,7 +39,7 @@ mat012_forPCA = pd.DataFrame(matriz012_test.T)
 PCA = pynei.pca.do_pca(mat012_forPCA)
 
 covariables_test = PCA["projections"].to_numpy()[:, :10]
-
+''''''
 print(covariables_test.shape)
 plt.scatter(covariables_test[:,0],covariables_test[:,1])
 plt.show()
@@ -52,16 +52,15 @@ pcs_resto = np.random.normal(loc=0.0, scale=1.0, size=(N_indivs, K_pcs - 1))
 covariables_test = np.column_stack([pc1, pcs_resto])
 '''
 # C. Fenotipo de altura (cm): Base + Efecto Ancestría (PC1) + Ruido ambiental
-Y_test = (
+# D. INTRODUCIMOS EL ASOCIACIÓN REAL: Solo el SNP 0 tiene efecto (+4.0 cm por alelo)
+# Los SNPs del 1 al M no tienen ningún efecto sobre Y
+phenotypes_test = (
     170.0
 #    + (3.0 * covariables_test[:, 0])
+    + 4.0 * matriz012_test[0, :]
     + np.random.normal(loc=0.0, scale=4.0, size=N_indivs)
 )
-
-# D. INTRODUCIMOS EL ASOCIACIÓN REAL: Solo el SNP 0 tiene efecto (+4.0 cm por alelo)
-# Los SNPs del 1 al 19 no tienen ningún efecto sobre Y
-Y_test += 4.0 * matriz012_test[0, :]
-Y_test = np.clip(Y_test, 140.0, 210.0)
+phenotypes_test = np.clip(phenotypes_test, 140.0, 210.0)
 
 
 # =====================================================================
@@ -70,17 +69,17 @@ Y_test = np.clip(Y_test, 140.0, 210.0)
 
 print("--- 2. Ejecutando regresión con bucle y STATSMODELS... ---")
 t0 = time.perf_counter()
-res_sm = gw_quant.linreg_sm(matriz012_test, Y_test, covariables_test)
+res_sm = gw_quant.linreg_sm(matriz012_test, phenotypes_test, covariables_test)
 t_sm = (time.perf_counter() - t0) * 1000
 
 print("--- 3. Ejecutando regresión con bucle y NUMPY... ---")
 t0 = time.perf_counter()
-res_bucle = gw_quant.linreg_nploop(matriz012_test, Y_test, covariables_test)
+res_bucle = gw_quant.linreg_nploop(matriz012_test, phenotypes_test, covariables_test)
 t_bucle = (time.perf_counter() - t0) * 1000
 
 print("--- 4. Ejecutando regresión 3D vectorizada... ---")
 t0 = time.perf_counter()
-res_3d = gw_quant.linreg_3d(matriz012_test, Y_test, covariables_test)
+res_3d = gw_quant.linreg_3d(matriz012_test, phenotypes_test, covariables_test)
 t_3d = (time.perf_counter() - t0) * 1000
 
 print("\n====================================================================")

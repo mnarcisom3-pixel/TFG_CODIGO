@@ -1,8 +1,10 @@
 import numpy as np
 import time
+import pandas as pd
+import matplotlib.pyplot as plt
 
 import gwaslib.quantitative as gw_quant
-
+import pynei
 
 # =====================================================================
 # 2. GENERACIÓN DE DATOS SIMULADOS REALISTAS (20 SNPs, 200 Indivs, 10 PCs)
@@ -55,7 +57,7 @@ covariables_test = np.column_stack([pc1, pcs_resto])
 # INTRODUCIMOS 5 SNPS ASOCIADOS: Índices 0, 1, 2, 3 y 4 con distintos efectos (+ y -)
 phenotypes_test = (
     170.0
-    + (3.0 * covariables_test[:, 0])
+#    + (3.0 * covariables_test[:, 0])
     + (2.0 * matriz012_test[0, :])
     - (1.5 * matriz012_test[1, :])
     + (2.5 * matriz012_test[2, :])

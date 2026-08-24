@@ -1,6 +1,10 @@
 import time
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
 import gwaslib.qualitative as gw_qual
+import pynei
 
 # =====================================================================
 # 2. GENERACIÓN DE DATOS SIMULADOS REALISTAS (10000 SNPs, 300 Indivs, 10 PCs)
@@ -8,7 +12,7 @@ import gwaslib.qualitative as gw_qual
 np.random.seed(12345)
 
 M_snps = 10000
-N_indivs = 300
+N_indivs = 200
 K_pcs = 10
 
 print(
@@ -53,10 +57,10 @@ covariables_test = np.column_stack([pc1, pcs_resto])
 # INTRODUCIMOS 5 SNPS ASOCIADOS: Índices 0, 1, 2, 3 y 4 con distintos efectos (+ y -)
 eta_real = (
     -2.8
-    + (0.8 * covariables_test[:, 0])
+    # + (0.8 * covariables_test[:, 0])
     + (1.6 * matriz012_test[0, :])
     - (1.4 * matriz012_test[1, :])
-    + (1.5 * matriz012_test[2, :])
+    + (1.5 * matriz012_test[98, :])
     - (1.5 * matriz012_test[3, :])
     + (1.3 * matriz012_test[4, :])
 )

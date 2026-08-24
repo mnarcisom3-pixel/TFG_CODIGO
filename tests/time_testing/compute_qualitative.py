@@ -11,9 +11,12 @@ Solo se correrá una vez cada método, así que los tiempos que aparecen no son 
 
 '''
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import time
 
 import gwaslib.qualitative as gw_qual
+import pynei
 
 # =====================================================================
 # 2. GENERACIÓN DE DATOS SIMULADOS REALISTAS (20 SNPs, 200 Indivs, 10 PCs)
@@ -21,7 +24,7 @@ import gwaslib.qualitative as gw_qual
 np.random.seed(12345)
 
 M_snps = 10000
-N_indivs = 300
+N_indivs = 200
 K_pcs = 10
 
 print(
@@ -64,8 +67,18 @@ covariables_test = np.column_stack([pc1, pcs_resto])
 
 # C. Fenotipo binario (0 = Control, 1 = Caso) basado en modelo logístico latente
 # El SNP 0 tiene un efecto real (+1.5 en el log-odds por alelo alternativo)
+
+# IMPORTANTE
+# Se escogen (al azar) SNPs que no producen separación en este dataset simulado,
+# para poder comparar el rendimiento de las tres implementaciones
+# bajo condiciones en las que todas convergen correctamente.
 eta_real = (
-    -2.8 + (0.5 * covariables_test[:, 0]) + (1.5 * matriz012_test[0, :])
+    -2.8
+    + (1.6 * matriz012_test[0, :])
+    - (1.4 * matriz012_test[1, :])
+    + (1.5 * matriz012_test[98, :])
+    - (1.5 * matriz012_test[3, :])
+    + (1.3 * matriz012_test[4, :])
 )
 prob_real = 1.0 / (1.0 + np.exp(-eta_real))
 phenotypes_test = np.random.binomial(n=1, p=prob_real)

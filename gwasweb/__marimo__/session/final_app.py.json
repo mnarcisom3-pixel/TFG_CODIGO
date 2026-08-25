@@ -59,12 +59,12 @@
     },
     {
       "id": "lEQa",
-      "code_hash": "d8a7eec5287df559cee0a5bc158dae36",
+      "code_hash": "5526b87d5119d72d078fec5bca6a520f",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Instrucciones de uso</strong></span></span><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>1\u00ba</strong> Seleccionar tipo de fenotipo (cuantitativo o cualitativo)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>2\u00ba</strong> Subir los datos genot\u00edpicos y fenot\u00edpicos</span></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>Los datos genot\u00edpicos deben subirse en un \u00fanico fichero .vcf</li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>Los datos fenot\u00edpicos deben subirse en un \u00fanico fichero .xslx o .csv</li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Nota:</strong> El fichero de fenotipos debe contener \u00fanicamente 2 columnas: <strong>\"Sample\" y \"Phenotype\"</strong> (nombradas exactamente as\u00ed)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>3\u00ba</strong> Seleccionar los par\u00e1metros de filtrado deseados</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>4\u00ba</strong> Pulsar el bot\u00f3n \"CORRER GWAS\"</span></span></div></div>"
+            "text/html": "<marimo-accordion data-labels='[&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003ch4 id=&#92;&quot;instrucciones-de-uso&#92;&quot;&#92;u003e&#92;u003cstrong&#92;u003eInstrucciones de uso&#92;u003c/strong&#92;u003e&#92;u003c/h4&#92;u003e&#92;u003c/span&#92;u003e&quot;]' data-multiple='false'><div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>1\u00ba</b> Seleccionar tipo de fenotipo (cuantitativo o cualitativo)</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>2\u00ba</b> Subir los datos genot\u00edpicos y fenot\u00edpicos</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">&nbsp;&nbsp;&nbsp;&nbsp;- Los datos genot\u00edpicos deben subirse en un \u00fanico fichero <code>.vcf</code></span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">&nbsp;&nbsp;&nbsp;&nbsp;- Los datos fenot\u00edpicos deben subirse en un \u00fanico fichero <code>.xlsx</code> o <code>.csv</code></span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>Nota:</b> El fichero de fenotipos debe contener \u00fanicamente 2 columnas: <b>\"Sample\"</b> y <b>\"Phenotype\"</b> (nombradas exactamente as\u00ed)</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>3\u00ba</b> Seleccionar los par\u00e1metros de filtrado deseados</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>4\u00ba</b> Pulsar el bot\u00f3n <b>\"EJECUTAR GWAS\"</b></span></span></span></div></div></marimo-accordion>"
           }
         }
       ],
@@ -77,7 +77,7 @@
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='PKri-0' random-id='a8f29d17-c2cd-eb63-3222-c02144443c0c'><marimo-dropdown data-initial-value='[&quot;cuantitativo&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione el tipo de fenotipo: &#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;cuantitativo&quot;,&quot;cualitativo (binario)&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='PKri-0' random-id='7982b275-1068-4e5c-fc3c-90ac34ed1af5'><marimo-dropdown data-initial-value='[&quot;cuantitativo&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione el tipo de fenotipo: &#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;cuantitativo&quot;,&quot;cualitativo (binario)&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
           }
         }
       ],
@@ -90,7 +90,7 @@
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos genot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='Xref-0' random-id='da9fa610-1eed-1aa9-4103-134f91f7b527'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.vcf)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos genot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='Xref-0' random-id='71d6f374-81d3-e6c0-5d0e-5541a8d21aba'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.vcf)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
           }
         }
       ],
@@ -103,7 +103,7 @@
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos fenot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='SFPL-0' random-id='a8fd6c60-91ec-8884-22ba-47377f4f92c8'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.xlsx o .csv)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos fenot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='SFPL-0' random-id='90d6968e-995d-0261-2eef-fae921883329'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.xlsx o .csv)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
           }
         }
       ],
@@ -124,12 +124,12 @@
     },
     {
       "id": "RGSE",
-      "code_hash": "83b8e4e5345965324864f24a48231313",
+      "code_hash": "5bbca1de81859da87d8f93d1bb9447ca",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span>None</span><span>None</span></div>"
+            "text/plain": ""
           }
         }
       ],
@@ -137,12 +137,25 @@
     },
     {
       "id": "Kclp",
-      "code_hash": "2736bfc1a637db06b6cecce2647d5453",
+      "code_hash": "9a50a0998884ca22a4f12e3aa87f0301",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span>None</span><span>None</span></div>"
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "ed738752a04671fce2b2bf28003900b9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-accordion data-labels='[&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003ch4 id=&#92;&quot;parametros-de-filtrado-comunes-para-el-pca-y-el-gwas&#92;&quot;&#92;u003e&#92;u003cstrong&#92;u003ePar\u00e1metros de filtrado&#92;u003c/strong&#92;u003e (comunes para el PCA y el GWAS):&#92;u003c/h4&#92;u003e&#92;u003c/span&#92;u003e&quot;]' data-multiple='false'><div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Filtrado de individuos/muestras</strong></span></span><marimo-ui-element object-id='emfo-0' random-id='3ac6bade-8bf4-7fd1-9447-119e4640f24e'><marimo-slider data-initial-value='0.05' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eM\u00e1ximo % de genotipos faltantes permitido por individuo&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0' data-stop='0.3' data-step='0.01' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='true' data-full-width='false'></marimo-slider></marimo-ui-element><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">\n<b>Nota</b>: Adem\u00e1s de este filtro, se eliminan tambi\u00e9n todos los individuos/muestras cuyo valor del <b>fenotipo</b> sea desconocido (NaN).\n</span></span></span></div><div style='height:20px'></div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Filtrado de SNPs</strong></span></span><marimo-ui-element object-id='emfo-1' random-id='214268d3-efa5-783c-19a5-db346d4fcf5f'><marimo-slider data-initial-value='0.05' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eM\u00e1ximo % de genotipos faltantes permitido por SNP&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0' data-stop='0.3' data-step='0.01' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='true' data-full-width='false'></marimo-slider></marimo-ui-element><marimo-ui-element object-id='emfo-2' random-id='b24e6678-2c1a-7491-8ab5-b9e670f35242'><marimo-slider data-initial-value='0.05' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eFrecuencia m\u00ednima del alelo no mayoritario&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0.05' data-stop='0.5' data-step='0.01' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='true' data-full-width='false'></marimo-slider></marimo-ui-element><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">\n<b>Nota</b>: Adem\u00e1s de estos filtros, <b>en el caso del PCA se incluye un cribado de SNPs por desequilibrio de ligamiento (LD)</b>.\nEsto se hace para evitar que regiones con LD elevado ejerzan una influencia desproporcionada sobre los componentes principales.\n<b>Este cribado no se aplica en el filtrado para GWAS</b>, ya que se busca maximizar la cobertura gen\u00f3mica para encontrar asociaciones.\n</span></span></span></div></div></div></marimo-accordion>"
           }
         }
       ],

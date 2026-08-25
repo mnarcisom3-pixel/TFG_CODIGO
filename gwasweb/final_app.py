@@ -27,6 +27,7 @@ async def _():
             "more-itertools",
             "matplotlib",
             "python-calamine",
+            "pyarrow",
         ])
 
     # Importamos los paquetes locales una vez las dependencias WASM están disponibles
@@ -43,7 +44,7 @@ async def _():
     import numpy
     import matplotlib.pyplot as plt
 
-    return
+    return Path, gw, pynei, tempfile
 
 
 @app.cell
@@ -60,18 +61,11 @@ def _(mo):
     _title_text = 'GWASweb'
     _subtitle_text ='Esta es una web para ejecutar análisis GWAS en Python, basada en los paquetes **gwaslib** y **pynei**.'
 
-
-
-    #_subtitle_2 = mo.center(mo.md())
-    _subtitle_3 = mo.center(mo.md('Nota: Los datos genotípicos deben subirse en un único fichero VCF. Los datos fenotípicos deben subirse en un único fichero .xlsx o .csv, con un formato de únicamente 2 columnas "Sample" y "Phenotype"'))
-
-
     _title = mo.center(mo.md(f"#**{_title_text}**"))
     _subtitle =  mo.center(mo.md(_subtitle_text))
 
     # Mostrar por pantalla el título y descripción:
     mo.vstack([_title, _subtitle])
-
     return
 
 
@@ -112,15 +106,15 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    # Fabricar botón para subir CSV
+    # Fabricar botón para subir VCF
     _label_vcf_button = 'Seleccione fichero (.vcf)'
     _previous_vcf_button = "Datos genotípicos de entrada: "
 
-    csv_button_file = mo.ui.file(multiple=False, kind='button', label=_label_vcf_button, max_size = 100_000_000)
-    show_csv_button_file =  mo.hstack([mo.md(_previous_vcf_button), csv_button_file], justify="start")
+    vcf_button_file = mo.ui.file(multiple=False, kind='button', label=_label_vcf_button, max_size = 100_000_000)
+    show_vcf_button_file =  mo.hstack([mo.md(_previous_vcf_button), vcf_button_file], justify="start")
 
-    show_csv_button_file
-    return
+    show_vcf_button_file
+    return (vcf_button_file,)
 
 
 @app.cell
@@ -133,6 +127,78 @@ def _(mo):
     show_pheno_button_file =  mo.hstack([mo.md(_previous_pheno_button), pheno_button_file], justify="start")
 
     show_pheno_button_file
+    return (pheno_button_file,)
+
+
+@app.cell
+def _(Path, gw, pynei, tempfile):
+    # Definimos funciones para poder cargar los datos de los ficheros subidos a los botones.
+
+    # Para el VCF, queremos leerlo y crear un objeto Variants crudo con Pynei
+    def load_uploaded_vcf(button_file):
+        filename = button_file.value[0].name
+        suffix = Path(filename).suffix.lower()
+
+        if suffix not in {".vcf", ".gz"}:
+            raise ValueError(
+                "Genotype file must have '.vcf' or '.gz' extension."
+            )
+
+        # pynei.vars_from_vcf desde el disco, no la memoria, así que creamos un archivo temporal para leerlo
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(button_file.contents())  # Trasnferir el contenido al tempfile
+            tmp_path = tmp.name
+
+        return pynei.vars_from_vcf(tmp_path)   
+
+    # Para el .csv o .xlsx de fenotipos, ya creamos una función load_phenotypes en gwaslib.integration.
+    # Nos devuelve un pd.Series de fenotipos crudos.
+
+    # Aquí simplemente hemos de crear una función que pueda trabajar con el button_file de marimo
+    def load_uploaded_phenotypes(button_file):
+        filename = button_file.value[0].name
+
+        return gw.load_phenotypes(
+            button_file.contents(),
+            filename=filename,
+        )
+
+    return load_uploaded_phenotypes, load_uploaded_vcf
+
+
+@app.cell
+def _(load_uploaded_vcf, mo, pynei, vcf_button_file):
+    # En el momento en el que se suba un archivo a un botón, lo leemos
+    # Para el fichero de GENOTIPOS
+    variants_crude = None
+    vcf_error = None
+    a = None    # esto es una prueba para ver que pynei funciona con el export
+    if vcf_button_file.value:
+        try:
+            variants_crude = load_uploaded_vcf(vcf_button_file)
+            matriz012_crude = pynei.pca.create_012_gt_matrix(variants_crude, transform_to_biallelic=True)
+            a = matriz012_crude.shape
+
+        except (ValueError, KeyError) as e:
+            vcf_error = mo.md(str(e)).callout(kind="danger")
+
+    mo.vstack([vcf_error, a])
+    return
+
+
+@app.cell
+def _(load_uploaded_phenotypes, mo, pheno_button_file):
+    # Para el fichero de FENOTIPOS
+    phenotypes_crude = None
+    pheno_error = None
+
+    if pheno_button_file.value:
+        try:
+            phenotypes_crude = load_uploaded_phenotypes(pheno_button_file)
+        except (ValueError, KeyError, TypeError) as e:
+            pheno_error = mo.md(str(e)).callout(kind="danger")
+
+    mo.vstack([pheno_error, phenotypes_crude]) # esto es una prueba para ver que gwaslib funciona con el export
     return
 
 

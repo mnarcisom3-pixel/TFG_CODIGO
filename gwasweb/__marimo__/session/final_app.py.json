@@ -1,0 +1,113 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.24.0",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROjj",
+      "code_hash": "7372c85a1ce9532de19b1efe364d7416",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "gwWn",
+      "code_hash": "a2bcbed2a31cc5b76a80ff77789a7f7b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Cjta",
+      "code_hash": "97c71458e303c71478aca13dd5560b49",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: center;flex-wrap: nowrap;gap: 0rem'><div><span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"gwasweb\"><strong>GWASweb</strong></h1></span></div></div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: center;flex-wrap: nowrap;gap: 0rem'><div><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Esta es una web para ejecutar an\u00e1lisis GWAS en Python, basada en los paquetes <strong>gwaslib</strong> y <strong>pynei</strong>.</span></span></div></div></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "FwDw",
+      "code_hash": "d8a7eec5287df559cee0a5bc158dae36",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Instrucciones de uso</strong></span></span><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>1\u00ba</strong> Seleccionar tipo de fenotipo (cuantitativo o cualitativo)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>2\u00ba</strong> Subir los datos genot\u00edpicos y fenot\u00edpicos</span></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>Los datos genot\u00edpicos deben subirse en un \u00fanico fichero .vcf</li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>Los datos fenot\u00edpicos deben subirse en un \u00fanico fichero .xslx o .csv</li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Nota:</strong> El fichero de fenotipos debe contener \u00fanicamente 2 columnas: <strong>\"Sample\" y \"Phenotype\"</strong> (nombradas exactamente as\u00ed)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>3\u00ba</strong> Seleccionar los par\u00e1metros de filtrado deseados</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>4\u00ba</strong> Pulsar el bot\u00f3n \"CORRER GWAS\"</span></span></div></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Gcfc",
+      "code_hash": "844fd1a4d1529340325f56db0948ed8d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='Gcfc-0' random-id='0448c33e-b454-3f36-424e-f72c52554966'><marimo-dropdown data-initial-value='[&quot;cuantitativo&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione el tipo de fenotipo: &#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;cuantitativo&quot;,&quot;cualitativo (binario)&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qYpH",
+      "code_hash": "34698f815aced088a334035246a00f57",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos genot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='qYpH-0' random-id='bae79005-412b-ac56-f3fd-2483af93bc22'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.vcf)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZWcu",
+      "code_hash": "dfb6903afcf9253f8d3f91106282bab6",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos fenot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='ZWcu-0' random-id='dc1b1e68-e0ec-0726-a986-6972b63c2d1b'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.xlsx o .csv)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

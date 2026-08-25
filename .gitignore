@@ -28,3 +28,6 @@ tests/PLINK_validation/*.csv
 
 # Directory with the obtained Figures and Tables
 Graphs_and_figures
+
+# dist_test for testing imports with marimo
+dist_test

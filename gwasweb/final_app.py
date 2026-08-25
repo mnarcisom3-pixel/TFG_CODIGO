@@ -71,27 +71,41 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    # Fabricar Instrucciones de uso
-    _instruc_title_text = 'Instrucciones de uso'
-    _instruc_text_1 = mo.md('**1º** Seleccionar tipo de fenotipo (cuantitativo o cualitativo)')
-    _instruc_text_2 = mo.md('**2º** Subir los datos genotípicos y fenotípicos')
-    _instruc_text_2_1 = mo.md('     - Los datos genotípicos deben subirse en un único fichero .vcf')
-    _instruc_text_2_2 = mo.md('     - Los datos fenotípicos deben subirse en un único fichero .xslx o .csv')
-    _instruc_text_2_3 = mo.md('**Nota:** El fichero de fenotipos debe contener únicamente 2 columnas: **"Sample" y "Phenotype"** (nombradas exactamente así)')
-    _instruc_text_3 = mo.md('**3º** Seleccionar los parámetros de filtrado deseados')
-    _instruc_text_4 = mo.md('**4º** Pulsar el botón "CORRER GWAS"')
+    # Fabricar instrucciones de uso
+
+    # Pequeña función para escribir con un tamaño de letra menor
+    def small_md(text):
+        return mo.md(f'<span style="font-size:0.75em;">{text}</span>')
+
+    # Todas las instrucciones, línea a línea
+    _instruc_text_1 = small_md("<b>1º</b> Seleccionar tipo de fenotipo (cuantitativo o cualitativo)")
+
+    _instruc_text_2 = small_md("<b>2º</b> Subir los datos genotípicos y fenotípicos")
+
+    _instruc_text_2_1 = small_md("&nbsp;&nbsp;&nbsp;&nbsp;- Los datos genotípicos deben subirse en un único fichero <code>.vcf</code>")
+
+    _instruc_text_2_2 = small_md("&nbsp;&nbsp;&nbsp;&nbsp;- Los datos fenotípicos deben subirse en un único fichero <code>.xlsx</code> o <code>.csv</code>")
+
+    _instruc_text_2_3 = small_md('<b>Nota:</b> El fichero de fenotipos debe contener únicamente 2 columnas: <b>"Sample"</b> y <b>"Phenotype"</b> (nombradas exactamente así)')
+
+    _instruc_text_3 = small_md("<b>3º</b> Seleccionar los parámetros de filtrado deseados")
+
+    _instruc_text_4 = small_md('<b>4º</b> Pulsar el botón <b>"EJECUTAR GWAS"</b>')
 
 
+    _instruc_subtitle = mo.vstack([
+        _instruc_text_1,
+        _instruc_text_2,
+        _instruc_text_2_1,
+        _instruc_text_2_2,
+        _instruc_text_2_3,
+        _instruc_text_3,
+        _instruc_text_4,
+    ])
 
-    #, selecciona los parámetros deseados y ejecuta el análisis. Los resultados pueden visualizarse online y pueden ser descargados. **Los datos genotípicos deben subirse en un único fichero VCF. Los datos fenotípicos deben subirse en un único fichero .xlsx o .csv**, con un formato de únicamente 2 columnas "Sample" y "Phenotype"'
-
-    _instruc_title = mo.md(f"**{_instruc_title_text}**")
-    _instruc_subtitle = mo.vstack([_instruc_text_1, _instruc_text_2, _instruc_text_2_1, _instruc_text_2_2, _instruc_text_2_3, _instruc_text_3, _instruc_text_4])
-    # Podemos hacer un mo.vstack de varios mo.md, pero no podemos hacer un mo.md de varios strings vstackeados.
-
-    # Mostrarlo por pantalla
-    mo.vstack([_instruc_title, _instruc_subtitle])
-    return
+    # Ponemos un desplegable con las instrucciones
+    mo.accordion ({'####**Instrucciones de uso**': _instruc_subtitle})
+    return (small_md,)
 
 
 @app.cell
@@ -167,22 +181,19 @@ def _(Path, gw, pynei, tempfile):
 
 
 @app.cell
-def _(load_uploaded_vcf, mo, pynei, vcf_button_file):
+def _(load_uploaded_vcf, mo, vcf_button_file):
     # En el momento en el que se suba un archivo a un botón, lo leemos
     # Para el fichero de GENOTIPOS
     variants_crude = None
     vcf_error = None
-    a = None    # esto es una prueba para ver que pynei funciona con el export
+
     if vcf_button_file.value:
         try:
             variants_crude = load_uploaded_vcf(vcf_button_file)
-            matriz012_crude = pynei.pca.create_012_gt_matrix(variants_crude, transform_to_biallelic=True)
-            a = matriz012_crude.shape
-
         except (ValueError, KeyError) as e:
             vcf_error = mo.md(str(e)).callout(kind="danger")
 
-    mo.vstack([vcf_error, a])
+    vcf_error
     return
 
 
@@ -198,7 +209,38 @@ def _(load_uploaded_phenotypes, mo, pheno_button_file):
         except (ValueError, KeyError, TypeError) as e:
             pheno_error = mo.md(str(e)).callout(kind="danger")
 
-    mo.vstack([pheno_error, phenotypes_crude]) # esto es una prueba para ver que gwaslib funciona con el export
+    pheno_error
+    return
+
+
+@app.cell
+def _(mo, small_md):
+    # Fabricar los sliders para parámetros de filtrado
+
+
+    slider_max_sample_missing = mo.ui.slider(start=0, stop=0.3, step=0.01, value=0.05, include_input=True, label='Máximo % de genotipos faltantes permitido por individuo')
+    slider_max_snp_missing = mo.ui.slider(start=0, stop=0.3, step=0.01, value=0.05, include_input=True, label='Máximo % de genotipos faltantes permitido por SNP')
+    slider_min_maf = mo.ui.slider(start=0.05, stop=0.50, step=0.01, value=0.05, include_input=True, label='Frecuencia mínima del alelo no mayoritario')
+
+    NaN_disclaimer = small_md(
+        """
+        <b>Nota</b>: Además de este filtro, se eliminan también todos los individuos/muestras cuyo valor del <b>fenotipo</b> sea desconocido (NaN).
+        """
+    )
+    LD_disclaimer = small_md(
+        """
+        <b>Nota</b>: Además de estos filtros, <b>en el caso del PCA se incluye un cribado de SNPs por desequilibrio de ligamiento (LD)</b>.
+        Esto se hace para evitar que regiones con LD elevado ejerzan una influencia desproporcionada sobre los componentes principales.
+        <b>Este cribado no se aplica en el filtrado para GWAS</b>, ya que se busca maximizar la cobertura genómica para encontrar asociaciones.
+        """
+    )
+
+    sample_parameters = mo.vstack([mo.md('**Filtrado de individuos/muestras**'), slider_max_sample_missing, NaN_disclaimer])
+    snp_parameters = mo.vstack([mo.md('**Filtrado de SNPs**'),  slider_max_snp_missing, slider_min_maf, LD_disclaimer])
+
+    parameters = mo.accordion({"####**Parámetros de filtrado** (comunes para el PCA y el GWAS): ": mo.vstack([sample_parameters, mo.Html("<div style='height:20px'></div>"), snp_parameters])})
+
+    parameters
     return
 
 

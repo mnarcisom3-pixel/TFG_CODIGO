@@ -44,7 +44,7 @@ async def _():
     import numpy
     import matplotlib.pyplot as plt
 
-    return Path, gw, pynei, tempfile
+    return Path, gw, plt, pynei, tempfile
 
 
 @app.cell
@@ -115,7 +115,7 @@ def _(mo):
     dropdown_quanti_quali = mo.ui.dropdown(options=['cuantitativo', 'cualitativo (binario)'], value='cuantitativo', label='Seleccione el tipo de fenotipo: ')
 
     dropdown_quanti_quali
-    return
+    return (dropdown_quanti_quali,)
 
 
 @app.cell
@@ -194,7 +194,7 @@ def _(load_uploaded_vcf, mo, vcf_button_file):
             vcf_error = mo.md(str(e)).callout(kind="danger")
 
     vcf_error
-    return
+    return (variants_crude,)
 
 
 @app.cell
@@ -210,17 +210,15 @@ def _(load_uploaded_phenotypes, mo, pheno_button_file):
             pheno_error = mo.md(str(e)).callout(kind="danger")
 
     pheno_error
-    return
+    return (phenotypes_crude,)
 
 
 @app.cell
 def _(mo, small_md):
     # Fabricar los sliders para parámetros de filtrado
-
-
-    slider_max_sample_missing = mo.ui.slider(start=0, stop=0.3, step=0.01, value=0.05, include_input=True, label='Máximo % de genotipos faltantes permitido por individuo')
-    slider_max_snp_missing = mo.ui.slider(start=0, stop=0.3, step=0.01, value=0.05, include_input=True, label='Máximo % de genotipos faltantes permitido por SNP')
-    slider_min_maf = mo.ui.slider(start=0.05, stop=0.50, step=0.01, value=0.05, include_input=True, label='Frecuencia mínima del alelo no mayoritario')
+    slider_max_sample_missing = mo.ui.slider(start=0, stop=0.2, step=0.01, value=0.05, include_input=True, label='Máximo % de genotipos faltantes permitido por individuo')
+    slider_max_snp_missing = mo.ui.slider(start=0, stop=0.2, step=0.01, value=0.05, include_input=True, label='Máximo % de genotipos faltantes permitido por SNP')
+    slider_max_maf = mo.ui.slider(start=0.80, stop=0.95, step=0.01, value=0.95, include_input=True, label='Máxima frecuencia permitida para el alelo mayoritario')
 
     NaN_disclaimer = small_md(
         """
@@ -236,11 +234,123 @@ def _(mo, small_md):
     )
 
     sample_parameters = mo.vstack([mo.md('**Filtrado de individuos/muestras**'), slider_max_sample_missing, NaN_disclaimer])
-    snp_parameters = mo.vstack([mo.md('**Filtrado de SNPs**'),  slider_max_snp_missing, slider_min_maf, LD_disclaimer])
+    snp_parameters = mo.vstack([mo.md('**Filtrado de SNPs**'),  slider_max_snp_missing, slider_max_maf, LD_disclaimer])
 
     parameters = mo.accordion({"####**Parámetros de filtrado** (comunes para el PCA y el GWAS): ": mo.vstack([sample_parameters, mo.Html("<div style='height:20px'></div>"), snp_parameters])})
 
     parameters
+    return slider_max_maf, slider_max_sample_missing, slider_max_snp_missing
+
+
+@app.cell
+def _(mo, small_md):
+    # Fabricar desplegable para los parámetros de los gráficos
+    graph_title_pheno_name = mo.ui.text(label="Nombre del fenotipo para mostrar en las gráficas",placeholder="Ej. Plant height")
+
+    dropdown_manhattan_y_axis = mo.ui.dropdown(options=['-log10(p-valores) crudos (opción recomendada)', '-log10(p-valores) corregidos por Bonferroni', '-log10(p-valores) corregidos por Benjamini-Hochberg FDR'], value='-log10(p-valores) crudos (opción recomendada)', label='Variable para mostrar en el eje Y del Manhattan plot: ')
+
+    options_for_Manhattan_function = ["p", "bonferroni", "fdr"]
+
+    y_axis_options_dict = dict(
+        zip(dropdown_manhattan_y_axis.options, options_for_Manhattan_function)
+    )
+
+
+    parameters_graph = mo.accordion({"####**Parámetros para crear las gráficas de resultados** (Manhattan Plot y QQ-Plot): ": mo.vstack([graph_title_pheno_name, dropdown_manhattan_y_axis, small_md("<b>Nota:</b> Aunque se seleccionen los p-valores crudos, <b>todos los Manhattan plots incluyen un umbral de significancia corregido por múltiples tests</b>")])})
+
+    parameters_graph
+    return (
+        dropdown_manhattan_y_axis,
+        graph_title_pheno_name,
+        y_axis_options_dict,
+    )
+
+
+@app.cell
+def _(mo):
+    # Creamos botón para ejecutar GWAS
+    color_run_gwas = 'success'
+
+    run_gwas_button = mo.ui.run_button(label='EJECUTAR GWAS', kind=color_run_gwas, full_width=False, tooltip='Haga click para iniciar el análisis')
+    run_gwas_button
+    return (run_gwas_button,)
+
+
+@app.cell
+def _(
+    dropdown_manhattan_y_axis,
+    dropdown_quanti_quali,
+    graph_title_pheno_name,
+    gw,
+    pheno_button_file,
+    phenotypes_crude,
+    plt,
+    pynei,
+    run_gwas_button,
+    slider_max_maf,
+    slider_max_sample_missing,
+    slider_max_snp_missing,
+    variants_crude,
+    vcf_button_file,
+    y_axis_options_dict,
+):
+    # Una vez pulsado, corremos el análisis
+    if run_gwas_button.value and vcf_button_file.value and pheno_button_file.value:
+
+        # Filtrado para el GWAS
+        filtered_vars_for_GWAS = gw.filter_genotypes_for_GWAS(variants=variants_crude, 
+                                                phenotypes=phenotypes_crude,
+                                                max_sample_gt_missing_rate=slider_max_sample_missing.value,
+                                                max_var_gt_missing_rate=slider_max_snp_missing.value,
+                                                max_allowed_maf=slider_max_maf.value, 
+                                                )
+        filtered_pheno = gw.filter_phenotypes(phenotypes_crude, filtered_vars_for_GWAS.samples)
+
+        # Filtrado para el PCA
+        filtered_vars_for_PCA = gw.filter_genotypes_for_PCA(variants=variants_crude, 
+                                                phenotypes=phenotypes_crude,
+                                                max_sample_gt_missing_rate=slider_max_sample_missing.value,
+                                                max_var_gt_missing_rate=slider_max_snp_missing.value,
+                                                max_allowed_maf=slider_max_maf.value,
+                                                min_allowed_r2=0.1,
+                                                )
+
+        # Correr PCA
+        pca_dict = pynei.pca.do_pca_with_vars(filtered_vars_for_PCA, transform_to_biallelic=True)
+        df_all_pcs = pca_dict["projections"]
+
+        # Mostrarlo por pantalla
+        fig_1, ax_1 = gw.create_pca_plot(df_all_pcs)
+        plt.show()
+
+        # Correr GWAS
+        gwas_results = gw.do_gwas(filtered_vars=filtered_vars_for_GWAS,
+                    filtered_phenotypes=filtered_pheno,
+                    covariates=df_all_pcs,
+                    type_of_phenotype=dropdown_quanti_quali.selected_key,
+                    sort_by_significance=False,
+                    )
+
+        # Mostrar por pantalla el DataFrame de resultados
+        print(gwas_results)
+
+        # Crear plots de resultados y mostrarlos por pantalla
+        # Manhattan plot
+        fig_2, ax_2 = gw.create_manhattan_plot(
+            gwas_results,
+            y_axis_variable=y_axis_options_dict[dropdown_manhattan_y_axis.value],
+            phenotype_name=graph_title_pheno_name.value,
+        )
+        plt.show()
+
+        # QQ-plot
+        fig_3, ax_3 = gw.create_qq_plot(
+            gwas_results,
+            phenotype_name=graph_title_pheno_name.value,
+        )
+        plt.show()
+
+
     return
 
 

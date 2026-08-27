@@ -20,7 +20,7 @@ PROJECT_DIR = Path(__file__).parent.parent.parent
 #path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_reduced_all_chroms.vcf"
 
 # Uno aún más pequeño
-path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_3_5mb_reduced.vcf"
+path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_2mb_reduced.vcf"
 
 # LEER VCF CON PYNEI ----------------------------------------------------------------------------------------
 variants = pynei.io_vcf.vars_from_vcf(path_VCF)
@@ -85,6 +85,7 @@ print(gwas_results)
 fig, ax = visualization.create_manhattan_plot(
     gwas_results,
     y_axis_variable="p",
+    alpha=0.005,
     phenotype_name="Mean Color b"
 )
 plt.show()

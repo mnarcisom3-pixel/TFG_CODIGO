@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
+'''
 input_path = "Varitome_gwas_plink2_quanti2_ownpcs.PHENO.glm.linear"
 output_png = "Manhattan_PLINK_mean_color_b.png"
 phenotype_name = "PLINK2 \n(Mean Color b)"
@@ -13,7 +13,7 @@ phenotype_name = "PLINK2 \n(Mean Color b)"
 input_path = "Varitome_gwas_plink2_quali_ownpcs.PHENO.glm.logistic.hybrid"
 output_png = "Manhattan_PLINK_inflorescence_forked.png"
 phenotype_name = "PLINK2 \n(Inflorescence Forked Type)"
-'''
+
 '''
 uv run python create_manhattan_plink.py `   
     Varitome_gwas_plink2_quanti_ownpcs.PHENO.glm.linear `                                
@@ -33,7 +33,7 @@ df = df[df["TEST"] == "ADD"].copy()
 # Seleccionamos solo los SNPs con p-valores válidos (finitos) de PLINK
 # Vamos a eliminar los SNPs que tenían p-valores inválidos en PLINK,
 # (eliminarlos del dataframe que devuelve do_gwas)
-my_gwas_results = pd.read_csv("Varitome_own_results_quanti_2.csv")
+my_gwas_results = pd.read_csv("Varitome_own_results_quali.csv")
 
 plink_p = pd.to_numeric(
     df["P"],
@@ -54,17 +54,17 @@ gwaslib_common_snps = my_gwas_results.loc[valid_common].copy()
 fig, ax = visualization.create_manhattan_plot(
     gwaslib_common_snps,
     y_axis_variable="p",
-    phenotype_name="GWASLIB \n(Mean Color b)"
+    phenotype_name="GWASLIB \n(Inflorescence Forked Type)"
 )
 
 fig.savefig(
-    "Manhattan_GWASLIB_mean_color_b.png",
+    "Manhattan_GWASLIB_inflorescence_forked.png",
     dpi=300,
     bbox_inches="tight",
 )
 
 fig.savefig(
-    "Manhattan_GWASLIB_mean_color_b.pdf",
+    "Manhattan_GWASLIB_inflorescence_forked.pdf",
     bbox_inches="tight",
 )
 
@@ -195,6 +195,32 @@ for boundary in chromosome_boundaries[:-1]:
 
 alpha = 0.05
 
+
+
+# Para mostrar una línea también para alfa sin corregir
+raw_threshold = -np.log10(alpha)
+ax.axhline(
+    y=raw_threshold,
+    linestyle="--",
+    linewidth=2.5,
+    color="gray",
+    alpha=0.7,
+    label=f"Umbral de significancia no corregido por múltiples tests (alfa = 0.05)",
+)
+
+ax.text(
+    1.005,
+    raw_threshold,
+    f"{raw_threshold:.2f}",
+    transform=ax.get_yaxis_transform(),
+    va="center",
+    ha="left",
+    color="gray",
+    fontweight="bold",
+
+)
+
+# Para mostrar una línea para alfa corregido
 num_tests = len(df)
 
 threshold = -np.log10(
@@ -207,7 +233,7 @@ ax.axhline(
     linewidth=2.5,
     color="black",
     alpha=0.7,
-    label="Umbral de significancia (alfa = 0.05 corregida por Bonferroni)",
+    label="Umbral de significancia corregido por Bonferroni",
 )
 
 ax.text(

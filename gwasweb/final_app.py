@@ -44,7 +44,7 @@ async def _():
     import numpy
     import matplotlib.pyplot as plt
 
-    return Path, gw, plt, pynei, tempfile
+    return Path, gw, io, pynei, tempfile, time
 
 
 @app.cell
@@ -86,7 +86,7 @@ def _(mo):
 
     _instruc_text_2_2 = small_md("&nbsp;&nbsp;&nbsp;&nbsp;- Los datos fenotípicos deben subirse en un único fichero <code>.xlsx</code> o <code>.csv</code>")
 
-    _instruc_text_2_3 = small_md('<b>Nota:</b> El fichero de fenotipos debe contener únicamente 2 columnas: <b>"Sample"</b> y <b>"Phenotype"</b> (nombradas exactamente así)')
+    _instruc_text_2_3 = small_md('<b>Nota:</b> El fichero de fenotipos debe contener únicamente 2 columnas: <b>"Sample"</b> y <b>"Phenotype"</b> (nombradas exactamente así). Para <b>fenotipos cualitativos (binarios)</b>, la columna "Phenotype" solo debe contener <b>valores de 0 y 1</b>')
 
     _instruc_text_3 = small_md("<b>3º</b> Seleccionar los parámetros de filtrado deseados")
 
@@ -278,79 +278,299 @@ def _(mo):
 
 @app.cell
 def _(
-    dropdown_manhattan_y_axis,
     dropdown_quanti_quali,
-    graph_title_pheno_name,
     gw,
-    pheno_button_file,
+    mo,
     phenotypes_crude,
-    plt,
     pynei,
     run_gwas_button,
     slider_max_maf,
     slider_max_sample_missing,
     slider_max_snp_missing,
+    time,
     variants_crude,
-    vcf_button_file,
-    y_axis_options_dict,
 ):
-    # Una vez pulsado, corremos el análisis
-    if run_gwas_button.value and vcf_button_file.value and pheno_button_file.value:
+    # Una vez pulsado el botón, ejecutamos el análisis
+    gwas_results = None
+    df_all_pcs = None
+    analysis_error = None
+    analysis_elapsed_time = None
+    analysis_stage_times = None
 
-        # Filtrado para el GWAS
-        filtered_vars_for_GWAS = gw.filter_genotypes_for_GWAS(variants=variants_crude, 
-                                                phenotypes=phenotypes_crude,
-                                                max_sample_gt_missing_rate=slider_max_sample_missing.value,
-                                                max_var_gt_missing_rate=slider_max_snp_missing.value,
-                                                max_allowed_maf=slider_max_maf.value, 
-                                                )
-        filtered_pheno = gw.filter_phenotypes(phenotypes_crude, filtered_vars_for_GWAS.samples)
 
-        # Filtrado para el PCA
-        filtered_vars_for_PCA = gw.filter_genotypes_for_PCA(variants=variants_crude, 
-                                                phenotypes=phenotypes_crude,
-                                                max_sample_gt_missing_rate=slider_max_sample_missing.value,
-                                                max_var_gt_missing_rate=slider_max_snp_missing.value,
-                                                max_allowed_maf=slider_max_maf.value,
-                                                min_allowed_r2=0.1,
-                                                )
+    if run_gwas_button.value:
 
-        # Correr PCA
-        pca_dict = pynei.pca.do_pca_with_vars(filtered_vars_for_PCA, transform_to_biallelic=True)
-        df_all_pcs = pca_dict["projections"]
+        # Comprobar que los dos archivos se han cargado correctamente
+        if variants_crude is None or phenotypes_crude is None:
 
-        # Mostrarlo por pantalla
-        fig_1, ax_1 = gw.create_pca_plot(df_all_pcs)
-        plt.show()
+            analysis_error = mo.callout(
+                "Debe cargar correctamente los datos genotípicos y fenotípicos "
+                "antes de ejecutar el análisis.",
+                kind="danger",
+            )
 
-        # Correr GWAS
-        gwas_results = gw.do_gwas(filtered_vars=filtered_vars_for_GWAS,
-                    filtered_phenotypes=filtered_pheno,
-                    covariates=df_all_pcs,
-                    type_of_phenotype=dropdown_quanti_quali.selected_key,
-                    sort_by_significance=False,
+        else:
+
+            _total_start = time.perf_counter()
+            analysis_stage_times = {}  # Diccionario para almacenar el tiempo que ha tardado cada paso
+
+            try:
+
+                # =========================================================
+                # STEP 1 — PREPARAR DATOS
+                # =========================================================
+
+                _t0 = time.perf_counter()
+
+                with mo.status.spinner(
+                    title="PASO 1/3 — Preparando los datos para el análisis..."
+                ):
+                    _filtered_vars_for_GWAS = gw.filter_genotypes_for_GWAS(
+                        variants=variants_crude,
+                        phenotypes=phenotypes_crude,
+                        max_sample_gt_missing_rate=slider_max_sample_missing.value,
+                        max_var_gt_missing_rate=slider_max_snp_missing.value,
+                        max_allowed_maf=slider_max_maf.value,
                     )
 
-        # Mostrar por pantalla el DataFrame de resultados
-        print(gwas_results)
+                    _filtered_pheno = gw.filter_phenotypes(
+                        phenotypes_crude,
+                        _filtered_vars_for_GWAS.samples,
+                    )
 
-        # Crear plots de resultados y mostrarlos por pantalla
+                analysis_stage_times["Preparación de datos"] = (time.perf_counter() - _t0)
+
+
+                # =========================================================
+                # STEP 2 — FILTRADO PCA + PCA
+                # =========================================================
+
+                _t0 = time.perf_counter()
+
+                with mo.status.spinner(
+                    title="PASO 2/3 — Filtrando datos para PCA y ejecutando PCA... (esto podría tardar entre minutos y horas, dependiendo del VCF subido)"
+                ):
+                    _filtered_vars_for_PCA = gw.filter_genotypes_for_PCA(
+                        variants=variants_crude,
+                        phenotypes=phenotypes_crude,
+                        max_sample_gt_missing_rate=slider_max_sample_missing.value,
+                        max_var_gt_missing_rate=slider_max_snp_missing.value,
+                        max_allowed_maf=slider_max_maf.value,
+                        min_allowed_r2=0.1,
+                    )
+
+                    _pca_dict = pynei.pca.do_pca_with_vars(_filtered_vars_for_PCA,transform_to_biallelic=True)
+
+                    df_all_pcs = _pca_dict["projections"]
+
+                analysis_stage_times["Filtrado PCA + PCA"] = (time.perf_counter() - _t0)
+
+
+                # =========================================================
+                # STEP 3 — FILTRADO GWAS + GWAS
+                # =========================================================
+
+                _t0 = time.perf_counter()
+
+                with mo.status.spinner(
+                    title="PASO 3/3 — Filtrando datos para GWAS y ejecutando GWAS..."
+                ):
+                    gwas_results = gw.do_gwas(
+                        filtered_vars=_filtered_vars_for_GWAS,
+                        filtered_phenotypes=_filtered_pheno,
+                        covariates=df_all_pcs,
+                        type_of_phenotype=dropdown_quanti_quali.selected_key,
+                        sort_by_significance=False,
+                    )
+
+                analysis_stage_times["GWAS"] = (time.perf_counter() - _t0)
+
+                # Tiempo total del análisis
+                analysis_elapsed_time = (time.perf_counter() - _total_start)
+
+
+            except Exception as _e:
+
+                analysis_elapsed_time = (time.perf_counter() - _total_start)
+
+                gwas_results = None
+
+                analysis_error = mo.callout(
+                    mo.md(
+                        f"""
+                        **El análisis no pudo completarse.**
+
+                        `{type(_e).__name__}: {_e}`
+
+                        Revise los datos de entrada y los parámetros de filtrado.
+                        """
+                    ),
+                    kind="danger",
+                )
+
+    # =========================================================
+    # OUTPUT DE LA CELDA
+    # =========================================================
+
+    if analysis_error is not None:
+        _analysis_output = analysis_error
+
+    elif gwas_results is not None:
+        _analysis_output = mo.callout(
+            mo.md(
+                f"""
+                **Análisis completado correctamente**
+
+                *Tiempos de computación*
+                - 1. Preparación de datos: `{analysis_stage_times["Preparación de datos"]:.2f} s`
+                - 2. Filtrado PCA + PCA: `{analysis_stage_times["Filtrado PCA + PCA"]:.2f} s`
+                - 3. Filtrado GWAS + GWAS: `{analysis_stage_times["GWAS"]:.2f} s`
+                - **Tiempo total: `{analysis_elapsed_time:.2f} s`**
+                """
+            ),
+            kind="success",
+        )
+
+    else:
+        _analysis_output = mo.md("")
+
+    # Muy importante: en los ifs, definimos el output. Pero al acabar, hemos de mostrarlo por pantalla así
+    _analysis_output
+    return df_all_pcs, gwas_results
+
+
+@app.cell
+def _(
+    df_all_pcs,
+    dropdown_manhattan_y_axis,
+    graph_title_pheno_name,
+    gw,
+    gwas_results,
+    io,
+    mo,
+    y_axis_options_dict,
+):
+    # Crear las gráficas a partir de los resultados
+    fig_pca = None
+    fig_manhattan = None
+    fig_qq = None
+
+    download_pca = None
+    download_manhattan = None
+    download_qq = None
+
+    # Función para que el usuario pueda descargar las gráficas también
+    def figure_to_png(fig):
+        _buffer = io.BytesIO()
+
+        fig.savefig(
+            _buffer,
+            format="png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+        return _buffer.getvalue()
+
+
+    if gwas_results is not None and df_all_pcs is not None:
+
+        # =========================================================
+        # PCA plot
+        # =========================================================
+
+        fig_pca, _ = gw.create_pca_plot(df_all_pcs)
+
+        # =========================================================
+        # Phenotype name
+        # =========================================================
+
+        _phenotype_name = (graph_title_pheno_name.value.strip() or "Phenotype")
+
+        # Para el nombre del archivo de la gráfica descargado
+        _safe_phenotype_name = "_".join(_phenotype_name.strip().lower().split())
+
+        # =========================================================
         # Manhattan plot
-        fig_2, ax_2 = gw.create_manhattan_plot(
+        # =========================================================
+
+        fig_manhattan, _ = gw.create_manhattan_plot(
             gwas_results,
             y_axis_variable=y_axis_options_dict[dropdown_manhattan_y_axis.value],
-            phenotype_name=graph_title_pheno_name.value,
+            phenotype_name=_phenotype_name,
         )
-        plt.show()
 
-        # QQ-plot
-        fig_3, ax_3 = gw.create_qq_plot(
+        # =========================================================
+        # QQ plot
+        # =========================================================
+
+        fig_qq, _ = gw.create_qq_plot(
             gwas_results,
-            phenotype_name=graph_title_pheno_name.value,
+            phenotype_name=_phenotype_name,
         )
-        plt.show()
+
+        # =========================================================
+        # Download buttons
+        # =========================================================
+
+        download_pca = mo.download(
+            data=lambda: figure_to_png(fig_pca),
+            filename=f"PCA_plot_{_safe_phenotype_name}.png",
+            mimetype="image/png",
+            label="Descargar PNG",
+        )
+
+        download_manhattan = mo.download(
+            data=lambda: figure_to_png(fig_manhattan),
+            filename=f"Manhattan_plot_{_safe_phenotype_name}.png",
+            mimetype="image/png",
+            label="Descargar PNG",
+        )
+
+        download_qq = mo.download(
+            data=lambda: figure_to_png(fig_qq),
+            filename=f"QQ_plot_{_safe_phenotype_name}.png",
+            mimetype="image/png",
+            label="Descargar PNG",
+        )
+    return (
+        download_manhattan,
+        download_pca,
+        download_qq,
+        fig_manhattan,
+        fig_pca,
+        fig_qq,
+    )
 
 
+@app.cell
+def _(
+    download_manhattan,
+    download_pca,
+    download_qq,
+    fig_manhattan,
+    fig_pca,
+    fig_qq,
+    gwas_results,
+    mo,
+):
+    # Mostrar los resultados del análisis en la web
+    if gwas_results is not None:
+
+        _results_tabs = mo.ui.tabs({
+
+            "GWAS results": gwas_results,
+            "PCA plot": mo.vstack([fig_pca, download_pca]),
+            "Manhattan plot": mo.vstack([fig_manhattan, download_manhattan]),
+            "QQ plot": mo.vstack([fig_qq, download_qq]),
+        })
+
+        _results_output = mo.vstack([mo.md("## Resultados"), _results_tabs])
+
+    else:
+        _results_output = mo.md("")
+
+    _results_output
     return
 
 

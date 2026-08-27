@@ -8,196 +8,103 @@
     {
       "id": "Hbol",
       "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "MJUe",
       "code_hash": "985550ffa7eb611489c16a9e0f0083e0",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "vblA",
       "code_hash": "a2bcbed2a31cc5b76a80ff77789a7f7b",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "bkHC",
       "code_hash": "ffc23c275f948b0235f147ae119fcc51",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: center;flex-wrap: nowrap;gap: 0rem'><div><span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"gwasweb\"><strong>GWASweb</strong></h1></span></div></div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: center;flex-wrap: nowrap;gap: 0rem'><div><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Esta es una web para ejecutar an\u00e1lisis GWAS en Python, basada en los paquetes <strong>gwaslib</strong> y <strong>pynei</strong>.</span></span></div></div></div>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "lEQa",
-      "code_hash": "5526b87d5119d72d078fec5bca6a520f",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-accordion data-labels='[&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003ch4 id=&#92;&quot;instrucciones-de-uso&#92;&quot;&#92;u003e&#92;u003cstrong&#92;u003eInstrucciones de uso&#92;u003c/strong&#92;u003e&#92;u003c/h4&#92;u003e&#92;u003c/span&#92;u003e&quot;]' data-multiple='false'><div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>1\u00ba</b> Seleccionar tipo de fenotipo (cuantitativo o cualitativo)</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>2\u00ba</b> Subir los datos genot\u00edpicos y fenot\u00edpicos</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">&nbsp;&nbsp;&nbsp;&nbsp;- Los datos genot\u00edpicos deben subirse en un \u00fanico fichero <code>.vcf</code></span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">&nbsp;&nbsp;&nbsp;&nbsp;- Los datos fenot\u00edpicos deben subirse en un \u00fanico fichero <code>.xlsx</code> o <code>.csv</code></span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>Nota:</b> El fichero de fenotipos debe contener \u00fanicamente 2 columnas: <b>\"Sample\"</b> y <b>\"Phenotype\"</b> (nombradas exactamente as\u00ed)</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>3\u00ba</b> Seleccionar los par\u00e1metros de filtrado deseados</span></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>4\u00ba</b> Pulsar el bot\u00f3n <b>\"EJECUTAR GWAS\"</b></span></span></span></div></div></marimo-accordion>"
-          }
-        }
-      ],
+      "code_hash": "4feb6ee7e769331e0b7c81822bf0d7ba",
+      "outputs": [],
       "console": []
     },
     {
       "id": "PKri",
       "code_hash": "844fd1a4d1529340325f56db0948ed8d",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-ui-element object-id='PKri-0' random-id='145a225b-fb22-535d-31a4-cc0f277a26d2'><marimo-dropdown data-initial-value='[&quot;cuantitativo&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione el tipo de fenotipo: &#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;cuantitativo&quot;,&quot;cualitativo (binario)&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "Xref",
       "code_hash": "1a7f86f54bccae4ae27d3b21c89e31b3",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos genot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='Xref-0' random-id='79354096-9cf6-e3d4-981a-6371e6389ba3'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.vcf)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "SFPL",
       "code_hash": "dfb6903afcf9253f8d3f91106282bab6",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Datos fenot\u00edpicos de entrada: </span></span><marimo-ui-element object-id='SFPL-0' random-id='a02b6cf1-06f8-be12-49d3-0842ccc2177e'><marimo-file data-initial-value='[]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eSeleccione fichero (.xlsx o .csv)&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-filetypes='[]' data-multiple='false' data-kind='&quot;button&quot;' data-max_size='100000000'></marimo-file></marimo-ui-element></div>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "BYtC",
       "code_hash": "6dd9173a85a342a3e80ea32dadc8ce7c",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "RGSE",
       "code_hash": "5bbca1de81859da87d8f93d1bb9447ca",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "Kclp",
       "code_hash": "9a50a0998884ca22a4f12e3aa87f0301",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "emfo",
       "code_hash": "25d8aed2f6cd62f1ebc0acbb6373146a",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-accordion data-labels='[&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003ch4 id=&#92;&quot;parametros-de-filtrado-comunes-para-el-pca-y-el-gwas&#92;&quot;&#92;u003e&#92;u003cstrong&#92;u003ePar\u00e1metros de filtrado&#92;u003c/strong&#92;u003e (comunes para el PCA y el GWAS):&#92;u003c/h4&#92;u003e&#92;u003c/span&#92;u003e&quot;]' data-multiple='false'><div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Filtrado de individuos/muestras</strong></span></span><marimo-ui-element object-id='emfo-0' random-id='69079194-c52d-3ffa-1b51-9059d800754e'><marimo-slider data-initial-value='0.05' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eM\u00e1ximo % de genotipos faltantes permitido por individuo&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0' data-stop='0.2' data-step='0.01' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='true' data-full-width='false'></marimo-slider></marimo-ui-element><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">\n<b>Nota</b>: Adem\u00e1s de este filtro, se eliminan tambi\u00e9n todos los individuos/muestras cuyo valor del <b>fenotipo</b> sea desconocido (NaN).\n</span></span></span></div><div style='height:20px'></div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Filtrado de SNPs</strong></span></span><marimo-ui-element object-id='emfo-1' random-id='3df6030c-4cf4-5b9b-11e1-02b18d900bf4'><marimo-slider data-initial-value='0.05' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eM\u00e1ximo % de genotipos faltantes permitido por SNP&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0' data-stop='0.2' data-step='0.01' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='true' data-full-width='false'></marimo-slider></marimo-ui-element><marimo-ui-element object-id='emfo-2' random-id='54390c87-93a9-4fec-75d1-997ca34f8de5'><marimo-slider data-initial-value='0.95' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eM\u00e1xima frecuencia permitida para el alelo mayoritario&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-start='0.8' data-stop='0.95' data-step='0.01' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='true' data-full-width='false'></marimo-slider></marimo-ui-element><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\">\n<b>Nota</b>: Adem\u00e1s de estos filtros, <b>en el caso del PCA se incluye un cribado de SNPs por desequilibrio de ligamiento (LD)</b>.\nEsto se hace para evitar que regiones con LD elevado ejerzan una influencia desproporcionada sobre los componentes principales.\n<b>Este cribado no se aplica en el filtrado para GWAS</b>, ya que se busca maximizar la cobertura gen\u00f3mica para encontrar asociaciones.\n</span></span></span></div></div></div></marimo-accordion>"
-          }
-        }
-      ],
-      "console": []
-    },
-    {
-      "id": "GNsl",
-      "code_hash": "a21fa692b8b4df71781e3559e45ce2be",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-accordion data-labels='[&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003ch4 id=&#92;&quot;parametros-para-crear-las-graficas-de-resultados-manhattan-plot-y-qq-plot&#92;&quot;&#92;u003e&#92;u003cstrong&#92;u003ePar\u00e1metros para crear las gr\u00e1ficas de resultados&#92;u003c/strong&#92;u003e (Manhattan Plot y QQ-Plot):&#92;u003c/h4&#92;u003e&#92;u003c/span&#92;u003e&quot;]' data-multiple='false'><div><div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><marimo-ui-element object-id='GNsl-0' random-id='2e30303d-ce10-13d6-9cc2-b2ee13b734b2'><marimo-text data-initial-value='&quot;&quot;' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eNombre del fenotipo para mostrar en las gr\u00e1ficas&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-placeholder='&quot;Ej. Plant height&quot;' data-kind='&quot;text&quot;' data-full-width='false' data-disabled='false' data-debounce='true'></marimo-text></marimo-ui-element><marimo-ui-element object-id='GNsl-1' random-id='b986738d-a0ba-8d9e-9c47-88af8a882883'><marimo-dropdown data-initial-value='[&quot;-log10(p-valores) crudos (opci\u00f3n recomendada)&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eVariable para mostrar en el eje Y del Manhattan plot: &#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;-log10(p-valores) crudos (opci\u00f3n recomendada)&quot;,&quot;-log10(p-valores) corregidos por Bonferroni&quot;,&quot;-log10(p-valores) corregidos por Benjamini-Hochberg FDR&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><span style=\"font-size:0.75em;\"><b>Nota:</b> Aunque se seleccionen los p-valores crudos, <b>todos los Manhattan plots incluyen un umbral de significancia corregido por m\u00faltiples tests</b></span></span></span></div></div></marimo-accordion>"
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     },
     {
       "id": "Hstk",
-      "code_hash": "f60fbda5bc4f842938c62206b6310496",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/html": "<marimo-ui-element object-id='Hstk-0' random-id='afd10081-64fd-a537-8ba4-b3b21b238dff'><marimo-button data-initial-value='0' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eEJECUTAR GWAS&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-kind='&quot;success&quot;' data-disabled='false' data-tooltip='&quot;Haga click para iniciar el an\u00e1lisis&quot;' data-full-width='false'></marimo-button></marimo-ui-element>"
-          }
-        }
-      ],
+      "code_hash": "a21fa692b8b4df71781e3559e45ce2be",
+      "outputs": [],
       "console": []
     },
     {
       "id": "nWHF",
-      "code_hash": "40a89665a9792ed37ebfccb29a502cb6",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "code_hash": "f60fbda5bc4f842938c62206b6310496",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "d331fedb0041ecf9971984e8e6970784",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "f4c0ce2018156b312acd2d591dee0871",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "0a37e3815d00d6599c8172ffc59d837c",
+      "outputs": [],
       "console": []
     }
   ]

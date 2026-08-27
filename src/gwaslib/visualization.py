@@ -182,16 +182,17 @@ def create_manhattan_plot(
         if y_axis_variable == "p":
             num_tests = len(gwas_results)
             threshold = -np.log10(alpha / num_tests)
-            threshold_label = "Umbral de significancia corregido por Bonferroni"
+            threshold_label = "Umbral de significancia Bonferroni"
 
+            # Ponemos también una línea para el alfa sin corregir
             raw_threshold = -np.log10(alpha)
             ax.axhline(
                 y=raw_threshold,
                 linestyle="--",
                 linewidth=2.5,
                 color="gray",
-                alpha=0.7,
-                label=f"Umbral de significancia no corregido por múltiples tests (alfa = {alpha:g})",
+                alpha=0.8,
+                label=f"Umbral de significancia no corregido (alfa = {alpha:g})",
             )
             # Para que salga a la derecha el valor
             ax.text(
@@ -204,6 +205,43 @@ def create_manhattan_plot(
                 color="gray",
                 fontweight="bold",
             )
+
+            # Ponemos también un umbral de Benjamini-Hochberg FDR
+
+            # Será el mayor p-valor que sigue siendo significativo según BH-FDR para 
+            # una alfa dada (es decir, menor -log10(p) entre los SNPs significativos)
+            _fdr_significant = (
+                gwas_results["-log10(FDR_BH)"] >= -np.log10(alpha)
+                )
+
+            # No hay un alfa fijo. 
+            # Mostramos la línea solo si algún -log10(p) corregido FDR supera el alfa nominal
+            if _fdr_significant.any():
+
+                fdr_threshold = gwas_results.loc[
+                    _fdr_significant,
+                    "-log10(p)"
+                ].min()
+
+                ax.axhline(
+                    y=fdr_threshold,
+                    linestyle="--",
+                    linewidth=2.5,
+                    color="tab:orange",
+                    alpha=0.8,
+                    label=f"Umbral de significancia BH-FDR",
+                )
+
+                ax.text(
+                    1.005,
+                    fdr_threshold,
+                    f"{fdr_threshold:.2f}",
+                    transform=ax.get_yaxis_transform(),
+                    va="center",
+                    ha="left",
+                    color="tab:orange",
+                    fontweight="bold"
+                )
 
         elif y_axis_variable == "bonferroni":
             threshold = -np.log10(alpha)
@@ -218,7 +256,7 @@ def create_manhattan_plot(
             linestyle="--",
             linewidth=2.5,
             color="black",
-            alpha=0.7,
+            alpha=0.8,
             label=threshold_label,
         )
         # Para que salga a la derecha el valor
@@ -232,7 +270,7 @@ def create_manhattan_plot(
             fontweight="bold",
         )
 
-        ax.legend(loc="upper left")
+        ax.legend(loc="upper left", fontsize=8.5)
     # ============================================================
     # 10. Formato
     # ============================================================

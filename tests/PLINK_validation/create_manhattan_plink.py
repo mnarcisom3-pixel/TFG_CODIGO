@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-'''
+from statsmodels.stats.multitest import multipletests
+
 input_path = "Varitome_gwas_plink2_quanti2_ownpcs.PHENO.glm.linear"
 output_png = "Manhattan_PLINK_mean_color_b.png"
 phenotype_name = "PLINK2 \n(Mean Color b)"
@@ -13,7 +14,7 @@ phenotype_name = "PLINK2 \n(Mean Color b)"
 input_path = "Varitome_gwas_plink2_quali_ownpcs.PHENO.glm.logistic.hybrid"
 output_png = "Manhattan_PLINK_inflorescence_forked.png"
 phenotype_name = "PLINK2 \n(Inflorescence Forked Type)"
-
+'''
 '''
 uv run python create_manhattan_plink.py `   
     Varitome_gwas_plink2_quanti_ownpcs.PHENO.glm.linear `                                
@@ -33,7 +34,7 @@ df = df[df["TEST"] == "ADD"].copy()
 # Seleccionamos solo los SNPs con p-valores válidos (finitos) de PLINK
 # Vamos a eliminar los SNPs que tenían p-valores inválidos en PLINK,
 # (eliminarlos del dataframe que devuelve do_gwas)
-my_gwas_results = pd.read_csv("Varitome_own_results_quali.csv")
+my_gwas_results = pd.read_csv("Varitome_own_results_quanti_2.csv")
 
 plink_p = pd.to_numeric(
     df["P"],
@@ -54,17 +55,17 @@ gwaslib_common_snps = my_gwas_results.loc[valid_common].copy()
 fig, ax = visualization.create_manhattan_plot(
     gwaslib_common_snps,
     y_axis_variable="p",
-    phenotype_name="GWASLIB \n(Inflorescence Forked Type)"
+    phenotype_name="GWASLIB \n(Mean Color b)"
 )
 
 fig.savefig(
-    "Manhattan_GWASLIB_inflorescence_forked.png",
+    "Manhattan_GWASLIB_mean_color_b.png",
     dpi=300,
     bbox_inches="tight",
 )
 
 fig.savefig(
-    "Manhattan_GWASLIB_inflorescence_forked.pdf",
+    "Manhattan_GWASLIB_mean_color_b.pdf",
     bbox_inches="tight",
 )
 
@@ -135,6 +136,8 @@ for chromosome in chromosomes:
 
 df["-log10(p)"] = -np.log10(df["P"])
 
+# Esta no saldrá en el eje Y, pero la sacamos para el umbral
+df["FDR_BH"] = multipletests(df["P"].to_numpy(), method="fdr_bh")[1]
 
 # ============================================================
 # 6. Colores
@@ -204,8 +207,8 @@ ax.axhline(
     linestyle="--",
     linewidth=2.5,
     color="gray",
-    alpha=0.7,
-    label=f"Umbral de significancia no corregido por múltiples tests (alfa = 0.05)",
+    alpha=0.8,
+    label=f"Umbral de significancia no corregido (alfa = {alpha:g})",
 )
 
 ax.text(
@@ -220,7 +223,39 @@ ax.text(
 
 )
 
-# Para mostrar una línea para alfa corregido
+# Para mostrar el umbral correspondiente a Benjamini-Hochberg FDR
+fdr_significant = df["FDR_BH"] <= alpha
+
+if fdr_significant.any():
+
+    # Mayor p-valor crudo que sigue siendo significativo según BH-FDR
+    # = menor -log10(p) entre los SNPs significativos
+    fdr_threshold = df.loc[
+        fdr_significant,
+        "-log10(p)"
+    ].min()
+
+    ax.axhline(
+        y=fdr_threshold,
+        linestyle="--",
+        linewidth=2.5,
+        color="tab:orange",
+        alpha=0.8,
+        label="Umbral de significancia BH-FDR",
+    )
+
+    ax.text(
+        1.005,
+        fdr_threshold,
+        f"{fdr_threshold:.2f}",
+        transform=ax.get_yaxis_transform(),
+        va="center",
+        ha="left",
+        color="tab:orange",
+        fontweight="bold"
+    )
+
+# Para mostrar una línea para umbral Bonferroni
 num_tests = len(df)
 
 threshold = -np.log10(
@@ -232,8 +267,8 @@ ax.axhline(
     linestyle="--",
     linewidth=2.5,
     color="black",
-    alpha=0.7,
-    label="Umbral de significancia corregido por Bonferroni",
+    alpha=0.8,
+    label="Umbral de significancia Bonferroni",
 )
 
 ax.text(
@@ -246,7 +281,7 @@ ax.text(
     fontweight="bold",
 )
 
-ax.legend(loc="upper left")
+ax.legend(loc="upper left", fontsize=8.5)
 
 
 # ============================================================

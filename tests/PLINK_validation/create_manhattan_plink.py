@@ -195,6 +195,32 @@ for boundary in chromosome_boundaries[:-1]:
 
 alpha = 0.05
 
+
+
+# Para mostrar una línea también para alfa sin corregir
+raw_threshold = -np.log10(alpha)
+ax.axhline(
+    y=raw_threshold,
+    linestyle="--",
+    linewidth=2.5,
+    color="gray",
+    alpha=0.7,
+    label=f"Umbral de significancia no corregido por múltiples tests (alfa = 0.05)",
+)
+
+ax.text(
+    1.005,
+    raw_threshold,
+    f"{raw_threshold:.2f}",
+    transform=ax.get_yaxis_transform(),
+    va="center",
+    ha="left",
+    color="gray",
+    fontweight="bold",
+
+)
+
+# Para mostrar una línea para alfa corregido
 num_tests = len(df)
 
 threshold = -np.log10(
@@ -207,10 +233,20 @@ ax.axhline(
     linewidth=2.5,
     color="black",
     alpha=0.7,
-    label="Genome-wide significance threshold (Bonferroni-corrected)",
+    label="Umbral de significancia corregido por Bonferroni",
 )
 
-ax.legend()
+ax.text(
+    1.005,
+    threshold,
+    f"{threshold:.2f}",
+    transform=ax.get_yaxis_transform(),
+    va="center",
+    ha="left",
+    fontweight="bold",
+)
+
+ax.legend(loc="upper left")
 
 
 # ============================================================

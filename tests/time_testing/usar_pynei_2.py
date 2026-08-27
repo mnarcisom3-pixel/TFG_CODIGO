@@ -17,8 +17,10 @@ PROJECT_DIR = Path(__file__).parent.parent.parent
 #path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_50mb_reduced.vcf"
 
 # El de probar la web, de Varitome reducido a 100MB
-path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_reduced_all_chroms.vcf"
+#path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_reduced_all_chroms.vcf"
 
+# Uno aún más pequeño
+path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_3_5mb_reduced.vcf"
 
 # LEER VCF CON PYNEI ----------------------------------------------------------------------------------------
 variants = pynei.io_vcf.vars_from_vcf(path_VCF)
@@ -49,17 +51,20 @@ df_filtered_feno = integration.filter_phenotypes(df_crude_feno_quali, filtered_v
 print(df_filtered_feno.to_numpy().shape)
 
 # PCA
-'''
+
 # El filtrado para el PCA lo omitimos para ahorrar tiempo. 
 # Importaremos el PCA ya calculado desde un csv
-filtered_vars_for_PCA = integration.filter_genotypes_for_PCA(variants, df_crude_feno_quanti)
+filtered_vars_for_PCA = integration.filter_genotypes_for_PCA(variants, df_crude_feno_quali)
+pca_dict = pynei.pca.do_pca_with_vars(filtered_vars_for_PCA, transform_to_biallelic=True)
+df_all_pcs = pca_dict["projections"]
+
 '''
 # Importamos CSV
 PCA_DIR = PROJECT_DIR / "geno_pheno_files" / "PCA_FILES_from_VCFs"
 path_PCA = PCA_DIR / "From_100mb_VCF" / "PCA_quali_trait_inflorescence_forked_type_clean.csv"
 
 df_all_pcs = pd.read_csv(path_PCA, index_col=0)
-
+'''
 # PCA plot
 fig, ax = visualization.create_pca_plot(df_all_pcs)
 plt.show()

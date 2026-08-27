@@ -183,15 +183,15 @@ def create_manhattan_plot(
         if y_axis_variable == "p":
             num_tests = len(gwas_results)
             threshold = -np.log10(alpha / num_tests)
-            threshold_label = "Genome-wide significance threshold (Bonferroni-corrected)"
+            threshold_label = "Umbral de significancia (alfa = 0.05 corregida por Bonferroni)"
 
         elif y_axis_variable == "bonferroni":
             threshold = -np.log10(alpha)
-            threshold_label = "Bonferroni-adjusted p = 0.05"
+            threshold_label = "Umbral de significancia (alfa = 0.05)"
 
         elif y_axis_variable == "fdr":
             threshold = -np.log10(alpha)
-            threshold_label = "BH-FDR adjusted p = 0.05"
+            threshold_label = "Umbral de significancia (alfa = 0.05)"
 
         ax.axhline(
             y=threshold,
@@ -202,7 +202,17 @@ def create_manhattan_plot(
             label=threshold_label,
         )
 
-        ax.legend()
+        ax.text(
+            1.005,
+            threshold,
+            f"{threshold:.2f}",
+            transform=ax.get_yaxis_transform(),
+            va="center",
+            ha="left",
+            fontweight="bold",
+        )
+
+        ax.legend(loc="upper left")
     # ============================================================
     # 10. Formato
     # ============================================================
@@ -421,6 +431,26 @@ def create_pca_plot(
         s=30,
         alpha=0.7,
     )
+
+    ax.axhline(
+        y=0,
+        color="gray",
+        linewidth=0.8,
+        alpha=0.5,
+    )
+
+    ax.axvline(
+        x=0,
+        color="gray",
+        linewidth=0.8,
+        alpha=0.5,
+    )
+
+    max_abs_x = max(abs(pc1.min()), abs(pc1.max())) * 1.05
+    max_abs_y = max(abs(pc2.min()), abs(pc2.max())) * 1.05
+
+    ax.set_xlim(-max_abs_x, max_abs_x)
+    ax.set_ylim(-max_abs_y, max_abs_y)
 
     ax.set_xlabel("PC1")
     ax.set_ylabel("PC2")

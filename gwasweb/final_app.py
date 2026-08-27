@@ -243,7 +243,7 @@ def _(mo, small_md):
 
 
 @app.cell
-def _(mo, small_md):
+def _(mo):
     # Fabricar desplegable para los parámetros de los gráficos
     graph_title_pheno_name = mo.ui.text(label="Nombre del fenotipo para mostrar en las gráficas",placeholder="Ej. Plant height")
 
@@ -255,15 +255,52 @@ def _(mo, small_md):
         zip(dropdown_manhattan_y_axis.options, options_for_Manhattan_function)
     )
 
+    # Para ver si el Manhattan muestra el alfa
+    checkbox_show_alpha = mo.ui.checkbox(
+        label="Deseo que el Manhattan plot incluya un umbral de significancia (opción recomendada)",
+        value=True,
+    )
 
-    parameters_graph = mo.accordion({"####**Parámetros para crear las gráficas de resultados** (Manhattan Plot y QQ-Plot): ": mo.vstack([graph_title_pheno_name, dropdown_manhattan_y_axis, small_md("<b>Nota:</b> Aunque se seleccionen los p-valores crudos, <b>todos los Manhattan plots incluyen un umbral de significancia corregido por múltiples tests</b>")])})
+    # Elegir qué valor de alfa
+    alpha_slider = mo.ui.slider(
+        start=0.005,
+        stop=0.10,
+        step=0.005,
+        value=0.05,
+        include_input=True,
+        label="Nivel de significancia (α)",
+    )
 
-    parameters_graph
     return (
+        alpha_slider,
+        checkbox_show_alpha,
         dropdown_manhattan_y_axis,
         graph_title_pheno_name,
         y_axis_options_dict,
     )
+
+
+@app.cell
+def _(
+    alpha_slider,
+    checkbox_show_alpha,
+    dropdown_manhattan_y_axis,
+    graph_title_pheno_name,
+    mo,
+    small_md,
+):
+    # Nueva celda para separar aquí la condición del Manhattan
+    alpha_controls = mo.vstack([
+        checkbox_show_alpha,
+        alpha_slider if checkbox_show_alpha.value else mo.md(""),
+    ])
+
+
+    # Mostrar el desplegable por pantalla
+    parameters_graph = mo.accordion({"####**Parámetros para crear las gráficas de resultados** (Manhattan Plot y QQ-Plot): ": mo.vstack([graph_title_pheno_name, alpha_controls, dropdown_manhattan_y_axis, small_md("<b>Nota:</b> Aunque se seleccionen los p-valores crudos, <b>el Manhattan plot incluirá un umbral de significancia corregido por múltiples tests</b>")])})
+
+    parameters_graph
+    return
 
 
 @app.cell
@@ -441,6 +478,7 @@ def _(
 
 @app.cell
 def _(
+    alpha_slider,
     df_all_pcs,
     dropdown_manhattan_y_axis,
     graph_title_pheno_name,
@@ -497,6 +535,7 @@ def _(
         fig_manhattan, _ = gw.create_manhattan_plot(
             gwas_results,
             y_axis_variable=y_axis_options_dict[dropdown_manhattan_y_axis.value],
+            alpha=alpha_slider.value,
             phenotype_name=_phenotype_name,
         )
 

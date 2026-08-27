@@ -88,10 +88,15 @@ def _(mo):
 
     _instruc_text_2_3 = small_md('<b>Nota:</b> El fichero de fenotipos debe contener únicamente 2 columnas: <b>"Sample"</b> y <b>"Phenotype"</b> (nombradas exactamente así). Para <b>fenotipos cualitativos (binarios)</b>, la columna "Phenotype" solo debe contener <b>valores de 0 y 1</b>')
 
-    _instruc_text_3 = small_md("<b>3º</b> Seleccionar los parámetros de filtrado deseados")
+    _instruc_text_3 = small_md("<b>3º</b> Seleccionar los parámetros de filtrado y de gráficas deseados")
 
     _instruc_text_4 = small_md('<b>4º</b> Pulsar el botón <b>"EJECUTAR GWAS"</b>')
 
+    _instruc_text_5 = small_md('<b>5º</b> Visualizar y/o descargar resultados')
+
+    _instruc_text_6 = small_md('<b>Importante:</b> Una vez finalizado el análisis, <b>se pueden modificar los parámetros de gráficas sin necesidad de volver a ejecutar el GWAS</b> (no hay que pulsar de nuevo el botón de ejecución).')
+
+    _instruc_text_7=small_md('En cambio, <b>para modificar los parámetros de filtrado sí que es necesario repetir todo el análisis</b>.')
 
     _instruc_subtitle = mo.vstack([
         _instruc_text_1,
@@ -101,6 +106,9 @@ def _(mo):
         _instruc_text_2_3,
         _instruc_text_3,
         _instruc_text_4,
+        _instruc_text_5,
+        _instruc_text_6,
+        _instruc_text_7,
     ])
 
     # Ponemos un desplegable con las instrucciones
@@ -296,7 +304,7 @@ def _(
 
 
     # Mostrar el desplegable por pantalla
-    parameters_graph = mo.accordion({"####**Parámetros para crear las gráficas de resultados** (Manhattan Plot y QQ-Plot): ": mo.vstack([graph_title_pheno_name, alpha_controls, dropdown_manhattan_y_axis, small_md("<b>Nota:</b> Aunque se seleccionen los p-valores crudos, <b>el Manhattan plot incluirá un umbral de significancia corregido por múltiples tests</b>")])})
+    parameters_graph = mo.accordion({"####**Parámetros para crear las gráficas de resultados**: ": mo.vstack([graph_title_pheno_name, alpha_controls, dropdown_manhattan_y_axis, small_md("<b>Nota:</b> Si se seleccionan los p-valores crudos, <b>el umbral α escogido se corregirá por múltiples tests</b>.")])})
 
     parameters_graph
     return

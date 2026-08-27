@@ -270,7 +270,6 @@ def _(mo):
         include_input=True,
         label="Nivel de significancia (α)",
     )
-
     return (
         alpha_slider,
         checkbox_show_alpha,
@@ -479,6 +478,7 @@ def _(
 @app.cell
 def _(
     alpha_slider,
+    checkbox_show_alpha,
     df_all_pcs,
     dropdown_manhattan_y_axis,
     graph_title_pheno_name,
@@ -537,6 +537,7 @@ def _(
             y_axis_variable=y_axis_options_dict[dropdown_manhattan_y_axis.value],
             alpha=alpha_slider.value,
             phenotype_name=_phenotype_name,
+            show_significance_threshold=checkbox_show_alpha.value
         )
 
         # =========================================================

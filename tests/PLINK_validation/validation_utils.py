@@ -7,6 +7,7 @@ de localización de fichero de PLINK y de tabla formateada para la memoria.
 """
 
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -72,58 +73,159 @@ def compute_metrics(own, plink_df, label, causal_snp_idx):
         "SNPs_causales_en_top10_plink": len(set(causal_snp_idx) & top10_plink),
     }
 
+def plot_comparison(
+    own,
+    plink_df,
+    outfile,
+    causal_snp_idx=None,
+    beta_label="beta",
+):
+    beta_o = own["beta"]
+    beta_p = plink_df["beta_aligned"].to_numpy()
 
-# Función para crear un gráfico de dispersión que compare ambos resultados
-def plot_comparison(own, plink_df, title, outfile, causal_snp_idx=None, beta_label="beta"):
-    beta_o, beta_p = own["beta"], plink_df["beta_aligned"].to_numpy()
-    se_o, se_p = own["SE"], plink_df["SE"].to_numpy()
+    se_o = own["SE"]
+    se_p = plink_df["SE"].to_numpy()
+
     logp_o = -np.log10(np.clip(own["p_val"], 1e-300, 1))
     logp_p = -np.log10(np.clip(plink_df["P"].to_numpy(), 1e-300, 1))
 
     causal_snp_idx = causal_snp_idx or []
+
     n = len(beta_o)
     is_causal = np.isin(np.arange(n), list(causal_snp_idx))
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    # -------------------------------------------------------
+    # Distribución:
+    # beta y SE arriba; -log10(p) centrado abajo
+    # -------------------------------------------------------
+    fig = plt.figure(figsize=(10, 8))
+
+    gs = fig.add_gridspec(
+        2,
+        4,
+        hspace=0.30,
+        wspace=0.35,
+    )
+
+    ax_beta = fig.add_subplot(gs[0, 0:2])
+    ax_se = fig.add_subplot(gs[0, 2:4])
+    ax_logp = fig.add_subplot(gs[1, 1:3])
+
+    axes = [ax_beta, ax_se, ax_logp]
+
     panels = [
-        (beta_o, beta_p, beta_label),
-        (se_o, se_p, "SE"),
-        (logp_o, logp_p, "-log10(p)"),
+        (beta_o, beta_p, beta_label, "(a)"),
+        (se_o, se_p, "SE", "(b)"),
+        (logp_o, logp_p, "-log10(p)", "(c)"),
     ]
-    for ax, (x, y, name) in zip(axes, panels):
+
+    for ax, (x, y, name, panel_label) in zip(axes, panels):
+
         r = np.corrcoef(x, y)[0, 1]
 
-        # puntos no causales
-        ax.scatter(x[~is_causal], y[~is_causal], s=10, alpha=0.35, color="#4c72b0",
-                   label="SNPs sin efecto", rasterized=True)
-        # puntos causales, resaltados
-        if is_causal.any():
-            ax.scatter(x[is_causal], y[is_causal], s=45, alpha=0.9, color="#c44e52",
-                       edgecolor="black", linewidth=0.5, label="SNPs causales", zorder=3)
+        # SNPs sin efecto
+        ax.scatter(
+            x[~is_causal],
+            y[~is_causal],
+            s=10,
+            alpha=0.35,
+            color="#4c72b0",
+            label="SNPs sin efecto",
+            rasterized=True,
+        )
 
-        lims = [min(x.min(), y.min()), max(x.max(), y.max())]
-        ax.plot(lims, lims, "k--", linewidth=1, alpha=0.6, label="y = x")
+        # SNPs causales
+        if is_causal.any():
+            ax.scatter(
+                x[is_causal],
+                y[is_causal],
+                s=45,
+                alpha=0.9,
+                color="#c44e52",
+                edgecolor="black",
+                linewidth=0.5,
+                label="SNPs asociados",
+                zorder=3,
+            )
+
+        # Recta y = x
+        lims = [
+            min(x.min(), y.min()),
+            max(x.max(), y.max()),
+        ]
+
+        ax.plot(
+            lims,
+            lims,
+            "k--",
+            linewidth=1,
+            alpha=0.6,
+            label="y = x",
+        )
+
         ax.set_xlim(lims)
         ax.set_ylim(lims)
         ax.set_aspect("equal", adjustable="box")
-        ax.set_xlabel(f"{name} (propio)")
+
+        # Ahora los ejes identifican explícitamente los programas
+        ax.set_xlabel(f"{name} (Gwaslib)")
         ax.set_ylabel(f"{name} (PLINK2)")
-        ax.set_title(name)
+
+        # Panel (a), (b), (c)
+        ax.set_title(f"{panel_label} {name}")
+
+        # Pearson
         ax.text(
-            0.05, 0.95, f"r = {r:.4f}",
-            transform=ax.transAxes, ha="left", va="top", fontsize=11,
-            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#999999", alpha=0.85),
+            0.05,
+            0.95,
+            f"r = {r:.4f}",
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=11,
+            bbox=dict(
+                boxstyle="round,pad=0.3",
+                facecolor="white",
+                edgecolor="#999999",
+                alpha=0.85,
+            ),
         )
-        ax.legend(loc="lower right", fontsize=8, framealpha=0.9)
 
-    fig.suptitle(title, fontsize=14, fontweight="bold")
-    plt.tight_layout()
-    plt.savefig(outfile, dpi=300, bbox_inches="tight")
-    plt.savefig(outfile.rsplit(".", 1)[0] + ".pdf", bbox_inches="tight")
+    # -------------------------------------------------------
+    # Una única leyenda para toda la figura
+    # -------------------------------------------------------
+    handles, labels = ax_beta.get_legend_handles_labels()
+
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        ncol=3,
+        fontsize=9,
+        framealpha=0.9,
+        bbox_to_anchor=(0.5, 0.01),
+    )
+
+    # Dejamos sitio inferior para la leyenda
+    plt.tight_layout(rect=[0, 0.07, 1, 1])
+
+    # Guardar
+    plt.savefig(
+        outfile,
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    pdf_path = Path(outfile).with_suffix(".pdf")
+
+    plt.savefig(
+        pdf_path,
+        bbox_inches="tight",
+    )
+
     plt.close(fig)
+
     print(f"Guardada figura: {outfile} (+ versión .pdf)")
-
-
 # ---------------------------------------------------------------------------
 # 3. Localización automática del fichero de salida de PLINK2 (opcional)
 # ---------------------------------------------------------------------------

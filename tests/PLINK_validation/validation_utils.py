@@ -1,9 +1,6 @@
 """
-Utilidades compartidas entre compare_gwas_quanti.py y compare_gwas_quali.py.
-
-Contiene las funciones que eran idénticas en ambos scripts (carga de
-resultados, cálculo de métricas, gráfica de comparación), más las utilidades
-de localización de fichero de PLINK y de tabla formateada para la memoria.
+Utilidades compartidas entre compare_gwas_quanti.py y compare_gwas_quali.py. 
+También se usan en compare_varitome.py.
 """
 
 import os

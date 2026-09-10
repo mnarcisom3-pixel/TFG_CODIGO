@@ -12,10 +12,10 @@ PROJECT_DIR = Path(__file__).parent.parent.parent
 # path_VCF = PROJECT_DIR / "geno_pheno_files" / "vcf_7_samples.vcf"
 
 # El de probar la web, de Varitome reducido a 100MB
-#path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_reduced_all_chroms.vcf"
+path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_reduced_all_chroms.vcf"
 
 # Una versión aún más reducida (20MB) para que el tiempo de computación sea menor
-path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_20mb_reduced.vcf"
+#path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_20mb_reduced.vcf"
 
 # Una versión intermedia (50MB)
 #path_VCF = PROJECT_DIR / "geno_pheno_files" / "VCF_FILES_from_Ximo" / "Varitome_50mb_reduced.vcf"
@@ -26,9 +26,9 @@ variants = pynei.io_vcf.vars_from_vcf(path_VCF)
 
 matriz012_crude = pynei.pca.create_012_gt_matrix(variants, transform_to_biallelic=True)
 print(matriz012_crude.shape)
-# Para el vcf de 20MB   --> (4122, 143)
+# Para el vcf de 20MB   --> (27807, 166)
 # Para el vcf de 50MB   --> (69707, 166)
-# Para el vcf de 100MB  --> (27807, 166)
+# Para el vcf de 100MB  --> (139321, 166)
 
 # APRENDIENDO SOBRE EL FUNCIONAMIENTO DE PYNEI
 '''
